@@ -43,7 +43,7 @@ class JuchaoHistorySpider(object):
 
     def start(self, start_date=None):
         if start_date is None:
-            start_date = datetime.datetime.today() - datetime.timedelta(days=10)
+            start_date = datetime.datetime.today() - datetime.timedelta(days=1)
 
         end_date = datetime.datetime.today()
         se_date = "{}~{}".format(start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))

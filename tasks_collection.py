@@ -25,7 +25,8 @@ python history_ant/his_task.py
 sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
 -itd --name ant_merge --env LOCAL=0 --env VPN=0 \
 registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/juchao_base:v1 \
-python source/source_announcement_base.py
+python spiders/source_announcement_base.py
+
 '''
 
 '''guba 
