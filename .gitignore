@@ -1,8 +1,0 @@
-.idea/
-.conf
-__pycache__/
-*.log
-*.pid
-temp*
-*.json
-__mytests
