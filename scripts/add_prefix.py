@@ -73,3 +73,7 @@ if __name__ == '__main__':
     PrefixAdder('dc_ann_event_source_news_detail').launch()
 
     pass
+
+    # UPDATE dc_ann_event_source_ann_detail  SET SecuCode=CONCAT('SH',SecuCode) WHERE SecuCode LIKE "6%";
+    # UPDATE dc_ann_event_source_ann_detail  SET SecuCode=CONCAT('SZ',SecuCode) WHERE SecuCode LIKE "3%";
+    # UPDATE dc_ann_event_source_ann_detail  SET SecuCode=CONCAT('SZ',SecuCode) WHERE SecuCode LIKE "0%";
