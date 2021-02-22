@@ -5,9 +5,9 @@
 ## 股票公告 
 ### 数据源 
 #### 巨潮快讯 
-网站数据源：http://www.cninfo.com.cn/new/commonUrl/quickNews?url=/disclosure/quickNews&queryDate=2021-01-12
-爬取逻辑文件：announcement/juchao_livenews_spider.py
-入库表名以及结构:
+- 网站数据源：http://www.cninfo.com.cn/new/commonUrl/quickNews?url=/disclosure/quickNews&queryDate=2021-01-12
+- 爬取逻辑文件：announcement/juchao_livenews_spider.py
+- 入库表名以及结构:
 ```sql
 CREATE TABLE IF NOT EXISTS `juchao_kuaixun` (
     `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS `juchao_kuaixun` (
 爬虫定时频率: 10min/次
 
 #### 巨潮历史数据查询 
-网站数据源: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&lastPage=index
-爬取逻辑文件: announcement/juchao_historyants_spider.py
-入库表名以及结构:
+- 网站数据源: http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&lastPage=index
+- 爬取逻辑文件: announcement/juchao_historyants_spider.py
+- 入库表名以及结构:
 ```sql
 CREATE TABLE IF NOT EXISTS `juchao_ant2` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -55,9 +55,9 @@ CREATE TABLE IF NOT EXISTS `juchao_ant2` (
 ```
 
 #### 巨潮历史公告财务部分查询 
-网站数据源：http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&lastPage=index 
-爬取逻辑文件: announcement/juchao_finance_hotfixes_spider.py 
-入库表名以及结构: 
+- 网站数据源：http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&lastPage=index 
+- 爬取逻辑文件: announcement/juchao_finance_hotfixes_spider.py 
+- 入库表名以及结构: 
 ```sql
  CREATE TABLE `juchao_ant_finance` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -103,3 +103,7 @@ CREATE TABLE IF NOT EXISTS `juchao_ant2` (
     KEY `k1` (`SecuCode`, `CategoryCode`, `PubDatetime1`,`PubDatetime2`,`UpdateTime`)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='公告基础表'; 
 ```
+
+
+
+### 改版后爬虫表数据库[最新]

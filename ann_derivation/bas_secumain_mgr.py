@@ -1,12 +1,16 @@
 # bas_secumain 证券主表
 import configparser
 import datetime
+import logging
 import os
 
 import MySQLdb
 
 cfg = os.path.join(os.path.dirname(__file__), 'ann_derivation.ini')
 xgrgcfg = os.path.join(os.path.dirname(__file__), 'XGRQ.cfg')
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class SecuMainSQL(object):
@@ -147,8 +151,6 @@ class BasSecumainMgr(object):
         self.spiderdbpwd = self.anncfg["spider"]["pwd"]  # 数据库密码
         self.spiderdbdefault = self.anncfg["spider"]["default"]  # 数据库名称
 
-
-
     @property
     def handle(self):
         self.__handel = "Bas_SecuMian:"
@@ -222,6 +224,7 @@ class BasSecumainMgr(object):
         conn = self.__get_conn(db_cfg)
         # 2、根据sql语句获取数据(1,2,3）类型
         jy_sql = SecuMainSQL.secuMainSQLDic[category].format(last_datetime, last_datetime)
+        logger.info(jy_sql)
         data_s, c = self.__select_data(conn, jy_sql)
         return data_s, c
 
@@ -275,6 +278,7 @@ class BasSecumainMgr(object):
         i = False
         # 获取上次的更新时间LAST_DATETIME
         last_datetime = self.datecfg["mgr_time"]["LAST_DATETIME"]
+        logger.info(f'上次的更新时间LAST_DATETIME{last_datetime}')
         # 1、从聚源的SECUMAIN中获取对应字段(1,2,3)类型
         for category in SecuMainSQL.secuMainSQLDic.keys():
             data_s, c = self.gain_basic_data(category, last_datetime)
@@ -282,9 +286,11 @@ class BasSecumainMgr(object):
                 if len(data_s) > 0:
                     # 2、对特殊字段做处理
                     item_lis = self.deal_special_field(data_s)
-                    # 3、存储到爬虫数据库bas_secumain中
-                    i = self.save_bas_secumain(item_lis)
-                    print(len(data_s))
+                    print(len(item_lis))
+                    # FIXME 较为耗时
+                    # # 3、存储到爬虫数据库bas_secumain中
+                    # i = self.save_bas_secumain(item_lis)
+                    # print(len(data_s))
                 else:
                     print(f"{self.handle}查询聚源数据为空集")
         # 4、存储成功后，更新LAST_DATETIME时间
@@ -296,10 +302,10 @@ class BasSecumainMgr(object):
     # 程序入口
     def start(self):
         # 数据处理
-        print("bas_secumain_mgr开始执行")
+        logger.info("bas_secumain_mgr开始执行")
         self.deal_data()
 
 
-# if __name__ == "__main__":
-#     BSM = BasSecumainMgr()
-#     BSM.start()
+if __name__ == "__main__":
+    BSM = BasSecumainMgr()
+    BSM.start()
