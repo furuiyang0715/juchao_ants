@@ -21,7 +21,7 @@ def ann_derivation_task():
     bs = BasStockIndustry()
     bs.start()
     t2 = time.time()
-    print(t2 - t1)
+    print(f"运行时间: {t2 - t1}s")
 
 
 if __name__ == "__main__":
