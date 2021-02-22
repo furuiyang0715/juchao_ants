@@ -1,3 +1,7 @@
+from spy_announcement.spider_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
+    SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB
+from spy_announcement.sql_base import Connection
+
 sql = '''
 CREATE TABLE `bas_secumain` (
   `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
@@ -25,3 +29,15 @@ CREATE TABLE `bas_secumain` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='证券主表'; 
 
 '''
+
+
+sql_conn = Connection(
+    host=SPIDER_MYSQL_HOST,
+    port=SPIDER_MYSQL_PORT,
+    user=SPIDER_MYSQL_USER,
+    password=SPIDER_MYSQL_PASSWORD,
+    database=SPIDER_MYSQL_DB,
+)
+
+
+sql_conn.execute(sql)
