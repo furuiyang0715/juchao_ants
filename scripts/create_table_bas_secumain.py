@@ -47,14 +47,23 @@ CREATE TABLE `bas_stock_industry` (
 '''
 
 
+# sql_conn = Connection(
+#     host=SPIDER_MYSQL_HOST,
+#     port=SPIDER_MYSQL_PORT,
+#     user=SPIDER_MYSQL_USER,
+#     password=SPIDER_MYSQL_PASSWORD,
+#     database=SPIDER_MYSQL_DB,
+# )
+
+
 sql_conn = Connection(
-    host=SPIDER_MYSQL_HOST,
-    port=SPIDER_MYSQL_PORT,
-    user=SPIDER_MYSQL_USER,
-    password=SPIDER_MYSQL_PASSWORD,
-    database=SPIDER_MYSQL_DB,
+    host='127.0.0.1',
+    port=3306,
+    user='root',
+    password='ruiyang',
+    database='spiders',
 )
 
 
-# sql_conn.execute(sql)
+sql_conn.execute(sql)
 sql_conn.execute(sql2)

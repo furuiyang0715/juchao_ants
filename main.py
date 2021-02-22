@@ -4,7 +4,7 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
-from ann_derivation.main import ann_derivation_task
+# from ann_derivation.main import ann_derivation_task
 from announcement import utils
 from announcement.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
 from announcement.juchao_historyants_spider import JuchaoHistorySpider
@@ -37,7 +37,7 @@ task_info = [
     {'task_id': 'ding', 'task_name': 'ding_msg', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 90},
 
     # 敏仪的 bas_secumain 和 bas_stock_industry 的更新任务
-    {'task_id': 'bas_secumain', 'task_name': 'bas_secumain_and_bas_industry', 'trigger': 'interval', 'time_unit': 'minutes', 'time_interval': 1},
+    # {'task_id': 'bas_secumain', 'task_name': 'bas_secumain_and_bas_industry', 'trigger': 'interval', 'time_unit': 'minutes', 'time_interval': 1},
 ]
 
 
@@ -60,8 +60,8 @@ def handle(event_name: str):
         SourceAnnouncementBaseV1().daily_update()
 
     # 敏仪的 bas..
-    elif event_name == 'bas_secumain':
-        ann_derivation_task()
+    # elif event_name == 'bas_secumain':
+    #     ann_derivation_task()
 
 
 for data in task_info:
