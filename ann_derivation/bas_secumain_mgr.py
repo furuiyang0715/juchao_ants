@@ -3,8 +3,11 @@ import configparser
 import datetime
 import logging
 import os
+import pprint
 
 import MySQLdb
+
+from ann_derivation.sql_base import Connection
 
 cfg = os.path.join(os.path.dirname(__file__), 'ann_derivation.ini')
 xgrgcfg = os.path.join(os.path.dirname(__file__), 'XGRQ.cfg')
@@ -251,27 +254,49 @@ class BasSecumainMgr(object):
             item_lis.append(item)
         return item_lis
 
-    # 存储到爬虫数据库中
+    # # 存储到爬虫数据库中
+    # def save_bas_secumain(self, item_lis):
+    #     table = "bas_secumain"
+    #     headclounms = ["juyuan_inner_code", "juyuan_company_code", "secu_code", "secu_abbr", "cn_spelling", "cn_name",
+    #                    "cn_name_abbr", "eng_name", "eng_name_abbr", "secu_market", "secu_category", "listed_date",
+    #                    "listed_sector", "listed_state", "delisting_date"]
+    #     db_cfg = {
+    #         "ip": self.spiderdbip,
+    #         "port": self.spiderdbport,
+    #         "user": self.spiderdbuser,
+    #         "pwd": self.spiderdbpwd,
+    #         "default": self.spiderdbdefault
+    #     }
+    #     i = True
+    #     for item in item_lis:
+    #         # 完成插入sql语句
+    #         sql = self.__create_sql(item, table, headclounms)
+    #         c = self.__save_item(sql, db_cfg)
+    #         if not c:
+    #             i = False
+    #     return i
+
     def save_bas_secumain(self, item_lis):
-        table = "bas_secumain"
         headclounms = ["juyuan_inner_code", "juyuan_company_code", "secu_code", "secu_abbr", "cn_spelling", "cn_name",
                        "cn_name_abbr", "eng_name", "eng_name_abbr", "secu_market", "secu_category", "listed_date",
                        "listed_sector", "listed_state", "delisting_date"]
-        db_cfg = {
-            "ip": self.spiderdbip,
-            "port": self.spiderdbport,
-            "user": self.spiderdbuser,
-            "pwd": self.spiderdbpwd,
-            "default": self.spiderdbdefault
-        }
-        i = True
-        for item in item_lis:
-            # 完成插入sql语句
-            sql = self.__create_sql(item, table, headclounms)
-            c = self.__save_item(sql, db_cfg)
-            if not c:
-                i = False
-        return i
+
+        items = [dict(zip(headclounms, item)) for item in item_lis]
+        for item in items:
+            if item['secu_market'] is None:
+                item['secu_market'] = 0
+
+        spider_conn = Connection(
+            host=self.spiderdbip,
+            database=self.spiderdbdefault,
+            user=self.spiderdbuser,
+            password=self.spiderdbpwd,
+            port=int(self.spiderdbport),
+        )
+
+        print(pprint.pformat(item_lis[0]))
+        ret = spider_conn.batch_insert(items, "bas_secumain", headclounms)
+        return ret
 
     # 数据处理
     def deal_data(self):
@@ -286,11 +311,12 @@ class BasSecumainMgr(object):
                 if len(data_s) > 0:
                     # 2、对特殊字段做处理
                     item_lis = self.deal_special_field(data_s)
+                    item_lis = data_s
                     print(len(item_lis))
+
                     # FIXME 较为耗时
-                    # # 3、存储到爬虫数据库bas_secumain中
-                    # i = self.save_bas_secumain(item_lis)
-                    # print(len(data_s))
+                    # 3、存储到爬虫数据库bas_secumain中
+                    i = self.save_bas_secumain(item_lis)
                 else:
                     print(f"{self.handle}查询聚源数据为空集")
         # 4、存储成功后，更新LAST_DATETIME时间
