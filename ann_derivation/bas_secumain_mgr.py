@@ -179,40 +179,40 @@ class BasSecumainMgr(object):
             c = False
         return trs, c
 
-    # 组合插入sql的语句
-    def __create_sql(self, item, table, cl):
-        columns = ""
-        values = ""
-        values2 = ""
-        for key in item.keys():
-            if key in cl:
-                columns += "%s, " % key
-                if not item[key] != 'null' and isinstance(item[key], str):
-                    values += '{}, '.format(item[key])
-                    v2 = "{}={},".format(key, item[key])
-                else:
-                    values += '"%s", ' % (str(item[key]).replace('"', "'"))
-                    v2 = '%s="%s",' % (key, str(item[key]).replace('"', "'"))
-                values2 += v2
-        sql = "INSERT INTO " + table + ' ({})'.format(columns[:-2]) + "values " + \
-              '({})'.format(values[:-2]) + "on duplicate key update " + '{};'.format(values2[:-1])
-        return sql
+    # # 组合插入sql的语句
+    # def __create_sql(self, item, table, cl):
+    #     columns = ""
+    #     values = ""
+    #     values2 = ""
+    #     for key in item.keys():
+    #         if key in cl:
+    #             columns += "%s, " % key
+    #             if not item[key] != 'null' and isinstance(item[key], str):
+    #                 values += '{}, '.format(item[key])
+    #                 v2 = "{}={},".format(key, item[key])
+    #             else:
+    #                 values += '"%s", ' % (str(item[key]).replace('"', "'"))
+    #                 v2 = '%s="%s",' % (key, str(item[key]).replace('"', "'"))
+    #             values2 += v2
+    #     sql = "INSERT INTO " + table + ' ({})'.format(columns[:-2]) + "values " + \
+    #           '({})'.format(values[:-2]) + "on duplicate key update " + '{};'.format(values2[:-1])
+    #     return sql
 
-    # 存储mysql
-    def __save_item(self, sql, db_cfg):
-        conn = self.__get_conn(db_cfg)
-        cur = conn.cursor()
-        c = False
-        cur.execute(sql)
-        try:
-            conn.commit()
-            c = True
-        except Exception as e:
-            conn.rollback()
-            print(f"{self.handle}入库失败,原因是{e},发生回滚")
-        cur.close()
-        conn.close()
-        return c
+    # # 存储mysql
+    # def __save_item(self, sql, db_cfg):
+    #     conn = self.__get_conn(db_cfg)
+    #     cur = conn.cursor()
+    #     c = False
+    #     cur.execute(sql)
+    #     try:
+    #         conn.commit()
+    #         c = True
+    #     except Exception as e:
+    #         conn.rollback()
+    #         print(f"{self.handle}入库失败,原因是{e},发生回滚")
+    #     cur.close()
+    #     conn.close()
+    #     return c
 
     # 从聚源的SECUMAIN中获取对应字段
     def gain_basic_data(self, category, last_datetime):
@@ -231,28 +231,28 @@ class BasSecumainMgr(object):
         data_s, c = self.__select_data(conn, jy_sql)
         return data_s, c
 
-    # 对特殊字段做处理
-    def deal_special_field(self, data_s):
-        item_lis = list()
-        for data in data_s:
-            item = dict()
-            item["juyuan_inner_code"] = data[0]
-            item["juyuan_company_code"] = data[1] if data[1] is not None else "null"
-            item["secu_code"] = data[2] if data[2] is not None else "null"
-            item["secu_abbr"] = data[3] if data[3] is not None else "null"
-            item["cn_spelling"] = data[4] if data[4] is not None else "null"
-            item["cn_name"] = data[5] if data[5] is not None else "null"
-            item["cn_name_abbr"] = data[6] if data[6] is not None else "null"
-            item["eng_name"] = data[7] if data[7] is not None else "null"
-            item["eng_name_abbr"] = data[8] if data[8] is not None else "null"
-            item["secu_market"] = data[9] if data[9] is not None else 0
-            item["secu_category"] = data[10] if data[10] is not None else "null"
-            item["listed_date"] = data[11] if data[11] is not None else "null"
-            item["listed_sector"] = data[12] if data[12] is not None else "null"
-            item["listed_state"] = data[13] if data[13] is not None else "null"
-            item["delisting_date"] = data[14] if data[14] is not None else "null"
-            item_lis.append(item)
-        return item_lis
+    # # 对特殊字段做处理
+    # def deal_special_field(self, data_s):
+    #     item_lis = list()
+    #     for data in data_s:
+    #         item = dict()
+    #         item["juyuan_inner_code"] = data[0]
+    #         item["juyuan_company_code"] = data[1] if data[1] is not None else "null"
+    #         item["secu_code"] = data[2] if data[2] is not None else "null"
+    #         item["secu_abbr"] = data[3] if data[3] is not None else "null"
+    #         item["cn_spelling"] = data[4] if data[4] is not None else "null"
+    #         item["cn_name"] = data[5] if data[5] is not None else "null"
+    #         item["cn_name_abbr"] = data[6] if data[6] is not None else "null"
+    #         item["eng_name"] = data[7] if data[7] is not None else "null"
+    #         item["eng_name_abbr"] = data[8] if data[8] is not None else "null"
+    #         item["secu_market"] = data[9] if data[9] is not None else 0
+    #         item["secu_category"] = data[10] if data[10] is not None else "null"
+    #         item["listed_date"] = data[11] if data[11] is not None else "null"
+    #         item["listed_sector"] = data[12] if data[12] is not None else "null"
+    #         item["listed_state"] = data[13] if data[13] is not None else "null"
+    #         item["delisting_date"] = data[14] if data[14] is not None else "null"
+    #         item_lis.append(item)
+    #     return item_lis
 
     # # 存储到爬虫数据库中
     # def save_bas_secumain(self, item_lis):
@@ -282,6 +282,7 @@ class BasSecumainMgr(object):
                        "listed_sector", "listed_state", "delisting_date"]
 
         items = [dict(zip(headclounms, item)) for item in item_lis]
+
         for item in items:
             if item['secu_market'] is None:
                 item['secu_market'] = 0
@@ -294,7 +295,6 @@ class BasSecumainMgr(object):
             port=int(self.spiderdbport),
         )
 
-        print(pprint.pformat(item_lis[0]))
         ret = spider_conn.batch_insert(items, "bas_secumain", headclounms)
         return ret
 
@@ -310,7 +310,7 @@ class BasSecumainMgr(object):
             if c:
                 if len(data_s) > 0:
                     # 2、对特殊字段做处理
-                    item_lis = self.deal_special_field(data_s)
+                    # item_lis = self.deal_special_field(data_s)
                     item_lis = data_s
                     print(len(item_lis))
 
