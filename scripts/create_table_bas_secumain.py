@@ -1,3 +1,4 @@
+# 敏仪的两个表测试时在本地建表的脚本
 from spy_announcement.spider_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
     SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB
 from spy_announcement.sql_base import Connection
@@ -31,6 +32,21 @@ CREATE TABLE `bas_secumain` (
 '''
 
 
+sql2 = '''
+CREATE TABLE `bas_stock_industry` (
+  `id` bigint(20) NOT NULL AUTO_INCREMENT COMMENT 'ID',
+  `secu_id` int(20) NOT NULL COMMENT '证券ID',
+  `industry_code` varchar(20) NOT NULL COMMENT '经传行业板块代码（仅限个股）',
+  `industry_name` varchar(30) DEFAULT NULL COMMENT '经传行业板块代码名称（仅限个股）',
+  `create_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  `create_user` int(11) NOT NULL DEFAULT '0' COMMENT '创建用户',
+  `update_user` int(11) NOT NULL DEFAULT '0' COMMENT '更新用户',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='个股行业表'; 
+'''
+
+
 sql_conn = Connection(
     host=SPIDER_MYSQL_HOST,
     port=SPIDER_MYSQL_PORT,
@@ -40,4 +56,5 @@ sql_conn = Connection(
 )
 
 
-sql_conn.execute(sql)
+# sql_conn.execute(sql)
+sql_conn.execute(sql2)
