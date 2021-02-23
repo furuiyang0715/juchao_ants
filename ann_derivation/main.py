@@ -25,4 +25,6 @@ def ann_derivation_task():
 
 
 if __name__ == "__main__":
-    ann_derivation_task()
+    while True:
+        ann_derivation_task()
+        time.sleep(60)
