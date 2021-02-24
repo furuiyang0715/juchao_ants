@@ -41,10 +41,11 @@ class AnnSecuRef(object):
         )
 
         self.batch_count = 10000
+        self.codes_notfound = set()
 
     def fetch_bas_secumain(self) -> dict:
         # 将 bas_secumain 的全部数据加载到内存中
-        bas_sql = '''select id, secu_code from bas_secumain; '''
+        bas_sql = '''select id, secu_code from bas_secumain where secu_category = 1; '''
         bas_datas = self.read_spider_conn.query(bas_sql)
         bas_map = {}
         for data in bas_datas:
@@ -78,7 +79,6 @@ class AnnSecuRef(object):
 
     def process_spy_datas(self, origin_ann_datas: list, bas_map: dict):
         # 处理爬虫数据 生成插入数据
-        codes_notfound = set()
         items = []
         for origin_data in origin_ann_datas:
             item = dict()
@@ -87,7 +87,7 @@ class AnnSecuRef(object):
             secu_id = bas_map.get(secu_codes)
             if secu_id is None:
                 logger.warning(secu_codes)
-                codes_notfound.add(secu_codes)
+                self.codes_notfound.add(secu_codes)
                 continue
             item['secu_id'] = secu_id
             item['create_by'] = 0
@@ -98,15 +98,11 @@ class AnnSecuRef(object):
                 logger.debug(count)
                 items = []
         self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
-        logger.warning(f'未匹配证券代码: {codes_notfound}')
+        logger.warning(f'未匹配证券代码: {self.codes_notfound}')
 
     def diff_ids(self):
         '''对比两张表的 id 只取差值部分
         可在数据不一致时执行此函数
-        select count(*) from spy_announcement_data ;
-        select count(*) from spy_announcement_data where  secu_codes in ('B06475') ;
-        select count(*) form an_announcement_secu_ref ;
-
         '''
 
         sql = '''select id from spy_announcement_data ; '''
@@ -143,19 +139,25 @@ class AnnSecuRef(object):
 
 
 if __name__ == '__main__':
-    # AnnSecuRef().init_load()
+    ann_secu_ref = AnnSecuRef()
+    ann_secu_ref.init_load()
+    logger.warning(f'未匹配证券代码: {ann_secu_ref.codes_notfound}')
 
-    AnnSecuRef().diff_ids()
+    # AnnSecuRef().diff_ids()
 
 
 '''
 select distinct secu_id  from  an_announcement_secu_ref group by ann_id having count(*) > 1 ; 
-
 select secu_codes from spy_announcement_data where id in (189521, 190821, 189579); 
-
 select id from bas_secumain where secu_code in (000756, 002064); 
 
-
 # 经由敏仪的 bas_secumain 筛选 A 股的规则: select * from bas_secumain where secu_category = 1 ; 
+
+
+# 核对数量上的一致性
+select count(*) from spy_announcement_data ;
+select count(*) from spy_announcement_data where secu_codes not in ('B06475') ;
+select count(*) form an_announcement_secu_ref ; 
+
 
 '''
