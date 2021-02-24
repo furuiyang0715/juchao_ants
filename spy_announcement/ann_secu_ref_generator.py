@@ -1,6 +1,8 @@
 # 生成公告-证券关联表
 import sys
 
+sys.path.append('./../')
+
 from spy_announcement.spider_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, \
     R_SPIDER_MYSQL_PASSWORD, R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
     SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
@@ -33,7 +35,22 @@ class AnnSecuRef(object):
         database=JUY_DB,
     )
 
-    def start(self):
+    def diff_ids(self):
+        # 对比两张表的 id 只取差值部分
+        sql = '''select id from spy_announcement_data ; '''
+        ret = self.read_spider_conn.query(sql)
+        spy_ids = set([r.get("id") for r in ret])
+
+        sql = '''select ann_id from an_announcement_secu_ref; '''
+        ret = self.spider_conn.query(sql)
+        ref_ids = set([r.get("ann_id") for r in ret])
+
+        diff_ids = spy_ids - ref_ids
+        print(diff_ids)
+
+        pass
+
+    def process(self):
         # 将 bas_secumain 的全部数据加载到内存中
         bas_sql = '''select id, secu_code from bas_secumain; '''
         bas_datas = self.read_spider_conn.query(bas_sql)
@@ -95,4 +112,6 @@ class AnnSecuRef(object):
 
 
 if __name__ == '__main__':
-    AnnSecuRef().start()
+    # AnnSecuRef().start()
+
+    AnnSecuRef().diff_ids()
