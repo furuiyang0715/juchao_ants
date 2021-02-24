@@ -1,4 +1,5 @@
 # 生成公告-证券关联表
+import datetime
 import logging
 import sys
 
@@ -136,6 +137,17 @@ class AnnSecuRef(object):
             sql = f'''select id, secu_codes from spy_announcement_data where id >= {_start} and id < {_end}; '''
             origin_ann_datas = self.read_spider_conn.query(sql)
             self.process_spy_datas(origin_ann_datas, bas_map)
+
+    def daily_sync(self, start_dt: datetime.datetime = None):
+        # 在爬虫原始表中存在新数据时日常的同步关联表操作
+        bas_map = self.fetch_bas_secumain()
+        bas_map = self.update_rename_codes(bas_map)
+        if start_dt is None:
+            # 每次启动定位开始时间为当日开始时间
+            start_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min)
+        sql = f'''select id, secu_codes from spy_announcement_data where update_time >= '{start_dt}'; '''
+        origin_ann_datas = self.read_spider_conn.query(sql)
+        self.process_spy_datas(origin_ann_datas, bas_map)
 
 
 if __name__ == '__main__':
