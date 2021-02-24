@@ -93,6 +93,7 @@ class AnnSecuRef(object):
             item['secu_id'] = secu_id
             item['create_by'] = 0
             item['update_by'] = 0
+            print(item)
             items.append(item)
             if len(items) > 10000:
                 count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
@@ -109,21 +110,23 @@ class AnnSecuRef(object):
         sql = '''select id from spy_announcement_data ; '''
         ret = self.read_spider_conn.query(sql)
         spy_ids = set([r.get("id") for r in ret])
+        print(len(spy_ids))
 
         sql = '''select ann_id from an_announcement_secu_ref; '''
         ret = self.spider_conn.query(sql)
         ref_ids = set([r.get("ann_id") for r in ret])
+        print(len(ref_ids))
 
         diff_ids = tuple(spy_ids - ref_ids)
         logger.info(len(diff_ids))
 
-        # bas_map = self.fetch_bas_secumain()
-        # bas_map = self.update_rename_codes(bas_map)
-        #
-        # sql = f'''select * from spy_announcement_data where id in {diff_ids}'''
-        # spy_datas = self.read_spider_conn.query(sql)
-        # logger.info(len(spy_datas))
-        # self.process_spy_datas(spy_datas, bas_map)
+        bas_map = self.fetch_bas_secumain()
+        bas_map = self.update_rename_codes(bas_map)
+
+        sql = f'''select * from spy_announcement_data where id in {diff_ids}'''
+        spy_datas = self.read_spider_conn.query(sql)
+        logger.info(len(spy_datas))
+        self.process_spy_datas(spy_datas, bas_map)
 
     def init_load(self):
         # 在关联表为空时 初始化导入
@@ -170,7 +173,7 @@ select id from bas_secumain where secu_code in (000756, 002064);
 # {'200054', '200530', '136427', '200771', '110032', '122102', '122385', '122495', '122404', '200168', '122134', '122388', '122378', '122304', '122104', '200512', '122157', '122269', '122190', '122096', '200468', '122083', '136054', 'B06475', '122427', '122421', '113009', '110033', '200986', '136092', '122257', '136566', '122254', '122253', '122028', '689009', '136666', '136018', '136294', '122362', '122370', '122336', '122188', '122285', '122377', '122085', '900929', '122112', '143155', '136303', '122354', '122267', '200152', '122313', '122406', '122132', '136250', '122008', '900953', '200553', '200706', '900948', '122088', '122488', '122192', '122079', '122043', '900939', '136317', '110030', '122235', '200992', '136206'}
 select count(*) from spy_announcement_data ;
 
-select count(*) from spy_announcement_data where secu_codes not in ('200054', '200530', '136427', '200771', '110032', '122102', '122385', '122495', '122404', '200168', '122134', '122388', '122378', '122304', '122104', '200512', '122157', '122269', '122190', '122096', '200468', '122083', '136054', 'B06475', '122427', '122421', '113009', '110033', '200986', '136092', '122257', '136566', '122254', '122253', '122028', '689009', '136666', '136018', '136294', '122362', '122370', '122336', '122188', '122285', '122377', '122085', '900929', '122112', '143155', '136303', '122354', '122267', '200152', '122313', '122406', '122132', '136250', '122008', '900953', '200553', '200706', '900948', '122088', '122488', '122192', '122079', '122043', '900939', '136317', '110030', '122235', '200992', '136206') ;
+select count(*) from spy_announcement_data where secu_codes in ('200054', '200530', '136427', '200771', '110032', '122102', '122385', '122495', '122404', '200168', '122134', '122388', '122378', '122304', '122104', '200512', '122157', '122269', '122190', '122096', '200468', '122083', '136054', 'B06475', '122427', '122421', '113009', '110033', '200986', '136092', '122257', '136566', '122254', '122253', '122028', '689009', '136666', '136018', '136294', '122362', '122370', '122336', '122188', '122285', '122377', '122085', '900929', '122112', '143155', '136303', '122354', '122267', '200152', '122313', '122406', '122132', '136250', '122008', '900953', '200553', '200706', '900948', '122088', '122488', '122192', '122079', '122043', '900939', '136317', '110030', '122235', '200992', '136206') ;
 
 select count(*) form an_announcement_secu_ref ; 
 
