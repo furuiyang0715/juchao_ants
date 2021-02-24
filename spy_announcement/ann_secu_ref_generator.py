@@ -35,6 +35,34 @@ class AnnSecuRef(object):
         database=JUY_DB,
     )
 
+    def fetch_bas_secumain(self) -> dict:
+        # 将 bas_secumain 的全部数据加载到内存中
+        bas_sql = '''select id, secu_code from bas_secumain; '''
+        bas_datas = self.read_spider_conn.query(bas_sql)
+        bas_map = {}
+        for data in bas_datas:
+            bas_map[data['secu_code']] = data['id']
+        return bas_map
+
+    def update_rename_codes(self, bas_map: dict) -> dict:
+        # 扩充映射 新增改名的部分
+        sql_fetch_raname_secucodes = '''
+                   SELECT A.SecuCode 'old_code', B.SecuCode 'new_code',
+                   A.*
+                   FROM gildata.LC_CodeChange A 
+                   JOIN gildata.SecuMain B ON A.InnerCode = B.InnerCode AND B.SecuMarket IN (83,90) AND B.SecuCategory = 1
+                   WHERE A.CodeDefine = 1 
+                   AND A.SecuCode <> B.SecuCode
+                   ORDER BY A.StopDate; 
+               '''
+        rename_datas = self.juyuan_conn.query(sql_fetch_raname_secucodes)
+        for rename_data in rename_datas:
+            new_code = rename_data['new_code']
+            secu_id = bas_map[new_code]
+            old_code = rename_data['old_code']
+            bas_map.update({old_code: secu_id})
+        return bas_map
+
     def diff_ids(self):
         # 对比两张表的 id 只取差值部分
         sql = '''select id from spy_announcement_data ; '''
@@ -51,32 +79,15 @@ class AnnSecuRef(object):
         pass
 
     def process(self):
-        # 将 bas_secumain 的全部数据加载到内存中
-        bas_sql = '''select id, secu_code from bas_secumain; '''
-        bas_datas = self.read_spider_conn.query(bas_sql)
-        bas_map = {}
-        for data in bas_datas:
-            bas_map[data['secu_code']] = data['id']
+        bas_map = self.fetch_bas_secumain()
 
-        # 扩充映射 新增改名的部分
-        sql_fetch_raname_secucodes = '''
-            SELECT A.SecuCode 'old_code', B.SecuCode 'new_code',
-            A.*
-            FROM gildata.LC_CodeChange A 
-            JOIN gildata.SecuMain B ON A.InnerCode = B.InnerCode AND B.SecuMarket IN (83,90) AND B.SecuCategory = 1
-            WHERE A.CodeDefine = 1 
-            AND A.SecuCode <> B.SecuCode
-            ORDER BY A.StopDate; 
-        '''
-        rename_datas = self.juyuan_conn.query(sql_fetch_raname_secucodes)
-        for rename_data in rename_datas:
-            new_code = rename_data['new_code']
-            secu_id = bas_map[new_code]
-            old_code = rename_data['old_code']
-            bas_map.update({old_code: secu_id})
+        bas_map = self.update_rename_codes(bas_map)
 
+        # # test
         # for old_code in ('600018', '600849', '601313', '000022', '000043'):
         #     print(bas_map[old_code])
+
+        sys.exit(0)
 
         sql_get_maxid = '''select max(id) from spy_announcement_data; '''
         max_id = self.read_spider_conn.get(sql_get_maxid).get("max(id)")
@@ -112,6 +123,6 @@ class AnnSecuRef(object):
 
 
 if __name__ == '__main__':
-    # AnnSecuRef().start()
+    AnnSecuRef().process()
 
-    AnnSecuRef().diff_ids()
+    # AnnSecuRef().diff_ids()
