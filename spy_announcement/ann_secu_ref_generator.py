@@ -1,4 +1,5 @@
 # 生成公告-证券关联表
+import logging
 import sys
 
 sys.path.append('./../')
@@ -8,32 +9,38 @@ from spy_announcement.spider_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_
     SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
 from spy_announcement.sql_base import Connection
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 
 class AnnSecuRef(object):
 
-    read_spider_conn = Connection(
-        host=R_SPIDER_MYSQL_HOST,
-        port=R_SPIDER_MYSQL_PORT,
-        user=R_SPIDER_MYSQL_USER,
-        password=R_SPIDER_MYSQL_PASSWORD,
-        database=R_SPIDER_MYSQL_DB,
-    )
+    def __init__(self):
+        self.read_spider_conn = Connection(
+            host=R_SPIDER_MYSQL_HOST,
+            port=R_SPIDER_MYSQL_PORT,
+            user=R_SPIDER_MYSQL_USER,
+            password=R_SPIDER_MYSQL_PASSWORD,
+            database=R_SPIDER_MYSQL_DB,
+        )
 
-    spider_conn = Connection(
-        host=SPIDER_MYSQL_HOST,
-        port=SPIDER_MYSQL_PORT,
-        user=SPIDER_MYSQL_USER,
-        password=SPIDER_MYSQL_PASSWORD,
-        database=SPIDER_MYSQL_DB,
-    )
+        self.spider_conn = Connection(
+            host=SPIDER_MYSQL_HOST,
+            port=SPIDER_MYSQL_PORT,
+            user=SPIDER_MYSQL_USER,
+            password=SPIDER_MYSQL_PASSWORD,
+            database=SPIDER_MYSQL_DB,
+        )
 
-    juyuan_conn = Connection(
-        host=JUY_HOST,
-        port=JUY_PORT,
-        user=JUY_USER,
-        password=JUY_PASSWD,
-        database=JUY_DB,
-    )
+        self.juyuan_conn = Connection(
+            host=JUY_HOST,
+            port=JUY_PORT,
+            user=JUY_USER,
+            password=JUY_PASSWD,
+            database=JUY_DB,
+        )
+
+        self.batch_count = 10000
 
     def fetch_bas_secumain(self) -> dict:
         # 将 bas_secumain 的全部数据加载到内存中
@@ -63,6 +70,12 @@ class AnnSecuRef(object):
             bas_map.update({old_code: secu_id})
         return bas_map
 
+    def get_max_spyid(self):
+        # 获取爬虫表中目前的最大 id
+        sql_get_maxid = '''select max(id) from spy_announcement_data; '''
+        max_id = self.read_spider_conn.get(sql_get_maxid).get("max(id)")
+        return max_id
+
     def diff_ids(self):
         # 对比两张表的 id 只取差值部分
         sql = '''select id from spy_announcement_data ; '''
@@ -87,17 +100,14 @@ class AnnSecuRef(object):
         # for old_code in ('600018', '600849', '601313', '000022', '000043'):
         #     print(bas_map[old_code])
 
-        sys.exit(0)
-
-        sql_get_maxid = '''select max(id) from spy_announcement_data; '''
-        max_id = self.read_spider_conn.get(sql_get_maxid).get("max(id)")
-        print(max_id)
+        max_id = self.get_max_spyid()
+        logger.info(f'Now max(id) of spy_announcement_data is {max_id}')
 
         codes_notfound = set()
         items = []
-        for i in range(int(max_id / 10000) + 1):
-            _start = i * 10000
-            _end = i * 10000 + 10000
+        for i in range(int(max_id / self.batch_count) + 1):
+            _start = i * self.batch_count
+            _end = i * self.batch_count + self.batch_count
             sql = f'''select id, secu_codes from spy_announcement_data where id >= {_start} and id < {_end}; '''
             origin_ann_datas = self.read_spider_conn.query(sql)
             for origin_data in origin_ann_datas:
@@ -109,17 +119,16 @@ class AnnSecuRef(object):
                     print(secu_codes)
                     codes_notfound.add(secu_codes)
                     continue
-                    # raise ValueError
                 item['secu_id'] = secu_id
                 item['create_by'] = 0
                 item['update_by'] = 0
                 items.append(item)
                 if len(items) > 10000:
                     count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
-                    print(count)
+                    logger.debug(count)
                     items = []
         self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
-        print(codes_notfound)
+        logger.warning(f'未匹配证券代码: {codes_notfound}')
 
 
 if __name__ == '__main__':
