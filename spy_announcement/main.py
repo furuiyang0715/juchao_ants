@@ -62,14 +62,22 @@ docker push registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
 
 sudo docker pull registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
 
+# 远程首次进行的关联表导入 
 sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=0 \
+-itd --name ref --env LOCAL=0 \
+registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
+python ann_secu_ref_generator.py
+
+
+# 远程日常更新
+sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
+-itd --name spy_ann_ref --env LOCAL=0 \
 registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
 python main.py
 
-
+# 本地日常更新 
 sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=1 \
+-itd --name spy_ann_ref --env LOCAL=1 \
 registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
 python main.py
 """
