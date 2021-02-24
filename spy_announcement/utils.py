@@ -84,6 +84,7 @@ def send_crawl_overview():
         # 'announcement_base': 'PubDatetime1',
 
         'spy_announcement_data': 'pub_datetime',
+        'an_announcement_secu_ref': 'update_time',
 
 
     }
