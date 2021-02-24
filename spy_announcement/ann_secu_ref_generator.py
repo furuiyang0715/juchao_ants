@@ -101,7 +101,14 @@ class AnnSecuRef(object):
         logger.warning(f'未匹配证券代码: {codes_notfound}')
 
     def diff_ids(self):
-        # 对比两张表的 id 只取差值部分
+        '''对比两张表的 id 只取差值部分
+        可在数据不一致时执行此函数
+        select count(*) from spy_announcement_data ;
+        select count(*) from spy_announcement_data where  secu_codes in ('B06475') ;
+        select count(*) form an_announcement_secu_ref ;
+
+        '''
+
         sql = '''select id from spy_announcement_data ; '''
         ret = self.read_spider_conn.query(sql)
         spy_ids = set([r.get("id") for r in ret])
@@ -110,12 +117,19 @@ class AnnSecuRef(object):
         ret = self.spider_conn.query(sql)
         ref_ids = set([r.get("ann_id") for r in ret])
 
-        diff_ids = spy_ids - ref_ids
-        print(diff_ids)
+        diff_ids = tuple(spy_ids - ref_ids)
+        logger.info(len(diff_ids))
 
-        pass
+        bas_map = self.fetch_bas_secumain()
+        bas_map = self.update_rename_codes(bas_map)
+
+        sql = f'''select * from spy_announcement_data where id in {diff_ids}'''
+        spy_datas = self.read_spider_conn.query(sql)
+        logger.info(len(spy_datas))
+        self.process_spy_datas(spy_datas, bas_map)
 
     def init_load(self):
+        # 在关联表为空时 初始化导入
         bas_map = self.fetch_bas_secumain()
         bas_map = self.update_rename_codes(bas_map)
         max_id = self.get_max_spyid()
@@ -129,6 +143,19 @@ class AnnSecuRef(object):
 
 
 if __name__ == '__main__':
-    AnnSecuRef().init_load()
+    # AnnSecuRef().init_load()
 
-    # AnnSecuRef().diff_ids()
+    AnnSecuRef().diff_ids()
+
+
+'''
+select distinct secu_id  from  an_announcement_secu_ref group by ann_id having count(*) > 1 ; 
+
+select secu_codes from spy_announcement_data where id in (189521, 190821, 189579); 
+
+select id from bas_secumain where secu_code in (000756, 002064); 
+
+
+# 经由敏仪的 bas_secumain 筛选 A 股的规则: select * from bas_secumain where secu_category = 1 ; 
+
+'''
