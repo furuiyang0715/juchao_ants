@@ -76,6 +76,30 @@ class AnnSecuRef(object):
         max_id = self.read_spider_conn.get(sql_get_maxid).get("max(id)")
         return max_id
 
+    def process_spy_datas(self, origin_ann_datas: list, bas_map: dict):
+        # 处理爬虫数据 生成插入数据
+        codes_notfound = set()
+        items = []
+        for origin_data in origin_ann_datas:
+            item = dict()
+            item['ann_id'] = origin_data['id']
+            secu_codes = origin_data['secu_codes']    # 对于沪深公告来说 目前secu_codes只有一个
+            secu_id = bas_map.get(secu_codes)
+            if secu_id is None:
+                logger.warning(secu_codes)
+                codes_notfound.add(secu_codes)
+                continue
+            item['secu_id'] = secu_id
+            item['create_by'] = 0
+            item['update_by'] = 0
+            items.append(item)
+            if len(items) > 10000:
+                count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
+                logger.debug(count)
+                items = []
+        self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
+        logger.warning(f'未匹配证券代码: {codes_notfound}')
+
     def diff_ids(self):
         # 对比两张表的 id 只取差值部分
         sql = '''select id from spy_announcement_data ; '''
@@ -91,47 +115,20 @@ class AnnSecuRef(object):
 
         pass
 
-    def process(self):
+    def init_load(self):
         bas_map = self.fetch_bas_secumain()
-
         bas_map = self.update_rename_codes(bas_map)
-
-        # # test
-        # for old_code in ('600018', '600849', '601313', '000022', '000043'):
-        #     print(bas_map[old_code])
-
         max_id = self.get_max_spyid()
         logger.info(f'Now max(id) of spy_announcement_data is {max_id}')
-
-        codes_notfound = set()
-        items = []
         for i in range(int(max_id / self.batch_count) + 1):
             _start = i * self.batch_count
             _end = i * self.batch_count + self.batch_count
             sql = f'''select id, secu_codes from spy_announcement_data where id >= {_start} and id < {_end}; '''
             origin_ann_datas = self.read_spider_conn.query(sql)
-            for origin_data in origin_ann_datas:
-                item = dict()
-                item['ann_id'] = origin_data['id']
-                secu_codes = origin_data['secu_codes']    # 对于沪深公告来说 目前secu_codes只有一个
-                secu_id = bas_map.get(secu_codes)
-                if secu_id is None:
-                    print(secu_codes)
-                    codes_notfound.add(secu_codes)
-                    continue
-                item['secu_id'] = secu_id
-                item['create_by'] = 0
-                item['update_by'] = 0
-                items.append(item)
-                if len(items) > 10000:
-                    count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
-                    logger.debug(count)
-                    items = []
-        self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
-        logger.warning(f'未匹配证券代码: {codes_notfound}')
+            self.process_spy_datas(origin_ann_datas, bas_map)
 
 
 if __name__ == '__main__':
-    AnnSecuRef().process()
+    AnnSecuRef().init_load()
 
     # AnnSecuRef().diff_ids()
