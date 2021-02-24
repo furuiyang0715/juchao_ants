@@ -2,6 +2,7 @@
 import datetime
 import logging
 import sys
+import time
 
 sys.path.append('./../')
 
@@ -93,7 +94,7 @@ class AnnSecuRef(object):
             item['secu_id'] = secu_id
             item['create_by'] = 0
             item['update_by'] = 0
-            print(item)
+            # print(item)
             items.append(item)
             if len(items) > 10000:
                 count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
@@ -154,13 +155,16 @@ class AnnSecuRef(object):
 
 
 if __name__ == '__main__':
-    # ann_secu_ref = AnnSecuRef()
-    # ann_secu_ref.init_load()
-    # logger.warning(f'未匹配证券代码: {ann_secu_ref.codes_notfound}')
+    ann_secu_ref = AnnSecuRef()
+    ann_secu_ref.init_load()
+    logger.warning(f'未匹配证券代码: {ann_secu_ref.codes_notfound}')
 
     AnnSecuRef().diff_ids()
 
-    # AnnSecuRef().daily_sync()
+    while True:
+        AnnSecuRef().daily_sync()
+        time.sleep(60)
+
 
 
 '''
