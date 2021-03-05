@@ -1,6 +1,6 @@
+# 生成一份巨潮的证券主表
 import json
 import time
-
 import requests
 
 from announcement.spider_configs import (SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER,
