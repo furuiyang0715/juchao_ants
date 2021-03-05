@@ -1,3 +1,4 @@
+# 按天校验数据库中入库的数量与网页显示是否一致
 import json
 import os
 import random
@@ -174,7 +175,6 @@ class JuchaoCounter(object):
         exist_map = {}
         for r in ret:
             exist_map[r.get('SecuCode')] = r.get("count(*)")
-        # print(exist_map)
 
         web_map = {}
         with open(file_name, "r") as f:
@@ -208,19 +208,19 @@ class JuchaoCounter(object):
                     # small_delta_lst.append((code, delta))
                     small_delta_lst.append(code)
 
-        # print(no_lst)
-        # print(len(no_lst))
+        print(no_lst)
+        print(len(no_lst))
 
         print(big_delta_lst)
         print(len(big_delta_lst))
 
-        # print(small_delta_lst)
-        # print(len(small_delta_lst))
+        print(small_delta_lst)
+        print(len(small_delta_lst))
 
 
 if __name__ == '__main__':
-    # org_id = os.environ.get("ORG", '9900000062')
-    # JuchaoCounter().launch(org_id)
+    org_id = os.environ.get("ORG", '9900000062')
+    JuchaoCounter().launch(org_id)
 
     JuchaoCounter().check_count()
 
@@ -228,5 +228,4 @@ if __name__ == '__main__':
 '''
 select secucode, AntTime,  AntTitle  from juchao_ant2 where SecuCode = '603056' order by AntTime desc,  AntId  desc  limit 60, 30; 
 select secucode, AntTime,  AntTitle  from juchao_ant2 where SecuCode = '600340' and categoryname = '中介报告' order by AntTime desc,  AntId  desc  limit 0, 30; 
-
 '''
