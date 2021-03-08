@@ -65,7 +65,7 @@ class JuchaoFinanceSpider(JuchaoHisSpiderBase):
                     logger.info(item)
                     items.append(item)
                 if len(items) > 100:
-                    self._spider_conn.batch_insert(items, self.history_table_name, self.fields)
+                    self._spider_conn._batch_save(items, self.history_table_name, self.fields)
                     items = []
             crawl_map[category] = cate_count
 
@@ -83,17 +83,17 @@ class JuchaoFinanceSpider(JuchaoHisSpiderBase):
                 logger.info(item)
                 items.append(item)
             if len(items) > 100:
-                self._spider_conn.batch_insert(items, self.history_table_name, self.fields)
+                self._spider_conn._batch_save(items, self.history_table_name, self.fields)
                 items = []
         crawl_map['category_yjkb_szsh'] = cate_count
 
-        self._spider_conn.batch_insert(items, self.history_table_name, self.fields)
+        self._spider_conn._batch_save(items, self.history_table_name, self.fields)
         logger.info(f'本次爬取的情况是: \n{pprint.pformat(crawl_map)}')
 
     def catup_mainids(self):
         sql = 'update juchao_ant_finance A inner join juchao_ant2 B on A.AntId = B.AntId \
 and (A.MainID is NULL or A.CategoryCode is NULL) \
 set A.MainID = B.id, A.CategoryCode = B.CategoryCode;'
-        update_count = self._spider_conn.insert(sql)
+        update_count = self._spider_conn._exec_sql(sql)
         logger.info(update_count)
         return update_count

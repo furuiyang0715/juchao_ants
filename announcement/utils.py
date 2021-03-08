@@ -10,8 +10,7 @@ import requests
 
 from ann_configs import SECRET, USER_PHONE, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
     SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB, TOKEN
-from announcement import sql_base
-from announcement.sql_base import Connection
+from sql_pool import PyMysqlPoolBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -89,7 +88,7 @@ def process_secucode(data: dict):
     return data
 
 
-def fetch_A_secucode_innercode_map(juyuan_conn: sql_base.Connection):
+def fetch_A_secucode_innercode_map(juyuan_conn: PyMysqlPoolBase):
     '''
     给出任意一个 SecuCode, 不管是上市还是退市, 不管是变更前还是变更后, 均在这此找到唯一的InnerCode
     '''
@@ -123,13 +122,13 @@ def fetch_A_secucode_innercode_map(juyuan_conn: sql_base.Connection):
     ); 
     """
 
-    exec_res = juyuan_conn.query(sql)
+    exec_res = juyuan_conn.select_all(sql)
     map1 = {}
     for one in exec_res:
         map1[one['SecuCode']] = one['InnerCode']
 
     sql = f'''select InnerCode, SecuMarket from secumain where InnerCode in {tuple(map1.values())};'''
-    res = juyuan_conn.query(sql)
+    res = juyuan_conn.select_all(sql)
     map2 = {}
     for r in res:
         map2[r['InnerCode']] = r['SecuMarket']
@@ -148,12 +147,12 @@ def fetch_A_secucode_innercode_map(juyuan_conn: sql_base.Connection):
     return info
 
 
-def get_inc_num(conn: sql_base.Connection, table_name: str, field: str):
+def get_inc_num(conn: PyMysqlPoolBase, table_name: str, field: str):
     query_sql = '''
     select count(id) as inc_count from {} where {} >= date_sub(CURDATE(), interval 1 day);
     '''
     query_sql = query_sql.format(table_name, field)
-    inc_count = conn.get(query_sql).get("inc_count")
+    inc_count = conn.select_one(query_sql).get("inc_count")
     return inc_count
 
 
@@ -196,12 +195,12 @@ def ding_msg(msg: str):
 
 
 def send_crawl_overview():
-    conn = Connection(
+    conn = PyMysqlPoolBase(
         host=SPIDER_MYSQL_HOST,
         port=SPIDER_MYSQL_PORT,
         user=SPIDER_MYSQL_USER,
         password=SPIDER_MYSQL_PASSWORD,
-        database=SPIDER_MYSQL_DB
+        db=SPIDER_MYSQL_DB
     )
     spiders_info = {
         'juchao_ant2': 'AntTime',
@@ -229,12 +228,12 @@ if __name__ == '__main__':
 
     # send_crawl_overview()
 
-    juyuanconn = Connection(
+    juyuanconn = PyMysqlPoolBase(
         host=JUY_HOST,
         port=JUY_PORT,
         user=JUY_USER,
         password=JUY_PASSWD,
-        database=JUY_DB,
+        db=JUY_DB,
     )
 
     ret = fetch_A_secucode_innercode_map(juyuanconn)

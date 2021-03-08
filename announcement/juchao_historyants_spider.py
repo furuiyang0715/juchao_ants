@@ -29,7 +29,7 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
     def codes_map(self):
         codes_map = {}
         sql = '''select code, OrgId from juchao_codemap; '''
-        res = self._spider_conn.query(sql)
+        res = self._spider_conn.select_all(sql)
         for r in res:
             codes_map[r.get('OrgId')] = r.get("code")
         return codes_map
@@ -68,7 +68,7 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
                 break
             items = self.process_items(ants, {'cat_code': 'category_others', 'cat_name': '其他'})
             counts += len(items)
-            self._spider_conn.batch_insert(items, self.history_table_name,
+            self._spider_conn._batch_save(items, self.history_table_name,
                     ['SecuCode', 'AntTime', 'AntTitle', 'AntDoc'])
         logger.info(f"无分类查询: 本次股票{stock_str}, 本次时间{start_date}-->>{end_date}, 数量: {counts}")
 
@@ -93,7 +93,7 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
                 if len(ants) == 0:
                     break
                 items = self.process_items(ants, {'cat_code': cat_code, 'cat_name': cat_name})
-                self._spider_conn.batch_insert(items, self.history_table_name,
+                self._spider_conn._batch_save(items, self.history_table_name,
                                                ['SecuCode', 'AntTime', 'AntTitle', 'AntDoc'])
                 cat_num += len(items)
 

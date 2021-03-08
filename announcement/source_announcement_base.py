@@ -8,11 +8,10 @@ file_path = os.path.abspath(os.path.join(cur_path, ".."))
 sys.path.insert(0, file_path)
 
 from announcement import utils
-from announcement.sql_base import Connection
-
 from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, \
     R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
+from sql_pool import PyMysqlPoolBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -26,26 +25,26 @@ class SourceAnnouncementBase(object):
         self.live_table = 'juchao_kuaixun'
         self.batch_number = 10000
 
-        self._r_spider_conn = Connection(
+        self._r_spider_conn = PyMysqlPoolBase(
             host=R_SPIDER_MYSQL_HOST,
             port=R_SPIDER_MYSQL_PORT,
             user=R_SPIDER_MYSQL_USER,
             password=R_SPIDER_MYSQL_PASSWORD,
-            database=R_SPIDER_MYSQL_DB,
+            db=R_SPIDER_MYSQL_DB,
         )
-        self._spider_conn = Connection(
+        self._spider_conn = PyMysqlPoolBase(
             host=SPIDER_MYSQL_HOST,
             port=SPIDER_MYSQL_PORT,
             user=SPIDER_MYSQL_USER,
             password=SPIDER_MYSQL_PASSWORD,
-            database=SPIDER_MYSQL_DB,
+            db=SPIDER_MYSQL_DB,
         )
-        self._juyuan_conn = Connection(
+        self._juyuan_conn = PyMysqlPoolBase(
             host=JUY_HOST,
             port=JUY_PORT,
             user=JUY_USER,
             password=JUY_PASSWD,
-            database=JUY_DB,
+            db=JUY_DB,
         )
 
     def category_code_map(self):
@@ -82,14 +81,14 @@ class SourceAnnouncementBase(object):
     def load_innercode_map(self):
         sql = '''select secucode, innercode from secumain; '''
         _map = dict()
-        ret = self._juyuan_conn.query(sql)
+        ret = self._juyuan_conn.select_all(sql)
         for r in ret:
             _map[r.get("secucode")] = r.get("innercode")
         return _map
 
     def get_old_inner_code(self, secucode: str):
         sql = '''select InnerCode from LC_CodeChange where secucode = '{}';'''.format(secucode)
-        r = self._juyuan_conn.get(sql)
+        r = self._juyuan_conn.select_one(sql)
         if r:
             inner_code = r.get("InnerCode")
             return inner_code
@@ -105,7 +104,7 @@ class SourceAnnouncementBase(object):
 AntTitle as Title1, AntDoc as PDFLink, CREATETIMEJZ as InsertDatetime1 from {} where \
 UPDATETIMEJZ > '{}'; '''.format(self.his_table, deadline)
         logger.info(f"his load sql is {load_sql}")
-        datas = self._r_spider_conn.query(load_sql)
+        datas = self._r_spider_conn.select_all(load_sql)
         logger.info(f"load count is {len(datas)} from his table.")
         items = []
         for data in datas:
@@ -124,13 +123,13 @@ UPDATETIMEJZ > '{}'; '''.format(self.his_table, deadline)
             if data:
                 items.append(data)
 
-        self._spider_conn.batch_insert(items, self.merge_table_name,
+        self._spider_conn._batch_save(items, self.merge_table_name,
         ['SecuCode', 'SecuAbbr', 'CategoryCode', 'PubDatetime1', 'InsertDatetime1', 'Title1', 'InnerCode'])
 
         update_sql = '''select A.* from juchao_kuaixun A, juchao_ant B where B.UPDATETIMEJZ > '{}' \
 and A.code = B.SecuCode and A.link = B.AntDoc and A.type = '公告';  '''.format(deadline)
         logger.info(f"live sql is {update_sql}")
-        datas = self._r_spider_conn.query(update_sql)
+        datas = self._r_spider_conn.select_all(update_sql)
         logger.info(f'load count {len(datas)} from live table.')
         for data in datas:
             item = {

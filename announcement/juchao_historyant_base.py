@@ -3,7 +3,7 @@ import json
 import requests
 
 from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB
-from announcement.sql_base import Connection
+from sql_pool import PyMysqlPoolBase
 
 
 class JuchaoHisSpiderBase(object):
@@ -23,12 +23,12 @@ class JuchaoHisSpiderBase(object):
             'Referer': 'http://www.cninfo.com.cn/new/commonUrl/pageOfSearch?url=disclosure/list/search&lastPage=index',
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.125 Safari/537.36',
         }
-        self._spider_conn = Connection(
+        self._spider_conn = PyMysqlPoolBase(
             host=SPIDER_MYSQL_HOST,
             port=SPIDER_MYSQL_PORT,
             user=SPIDER_MYSQL_USER,
             password=SPIDER_MYSQL_PASSWORD,
-            database=SPIDER_MYSQL_DB,
+            db=SPIDER_MYSQL_DB,
         )
 
     @property

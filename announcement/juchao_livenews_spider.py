@@ -16,7 +16,7 @@ sys.path.insert(0, file_path)
 
 from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
-from announcement.sql_base import Connection
+from sql_pool import PyMysqlPoolBase
 
 
 class JuchaoLiveNewsSpider(object):
@@ -27,19 +27,19 @@ class JuchaoLiveNewsSpider(object):
         self.fields = ['code', 'name', 'link', 'title', 'type', 'pub_date']
         self.table_name = 'juchao_kuaixun'
         self.name = '巨潮快讯'
-        self._spider_conn = Connection(
+        self._spider_conn = PyMysqlPoolBase(
             host=SPIDER_MYSQL_HOST,
             port=SPIDER_MYSQL_PORT,
             user=SPIDER_MYSQL_USER,
             password=SPIDER_MYSQL_PASSWORD,
-            database=SPIDER_MYSQL_DB,
+            db=SPIDER_MYSQL_DB,
         )
-        self._juyuan_conn = Connection(
+        self._juyuan_conn = PyMysqlPoolBase(
             host=JUY_HOST,
             port=JUY_PORT,
             user=JUY_USER,
             password=JUY_PASSWD,
-            database=JUY_DB,
+            db=JUY_DB,
         )
         self.headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/537.36 (KHTML, '
@@ -53,7 +53,7 @@ class JuchaoLiveNewsSpider(object):
         :return:
         """
         sql = f'''select SecuAbbr from secumain where secucode=%s;'''
-        name = self._juyuan_conn.get(sql, code).get("SecuAbbr")
+        name = self._juyuan_conn.select_one(sql, code).get("SecuAbbr")
         return name
 
     def get_redit_link(self, link):
@@ -131,6 +131,6 @@ class JuchaoLiveNewsSpider(object):
             day_string = this_day.strftime("%Y-%m-%d")
             items = self.parse(self.api_url.format(day_string), day_string)
             logger.info(f"{day_string}, {len(items)}")
-            self._spider_conn.batch_insert(items, self.table_name, self.fields)
+            self._spider_conn._batch_save(items, self.table_name, self.fields)
             this_day -= datetime.timedelta(days=1)
             time.sleep(3)

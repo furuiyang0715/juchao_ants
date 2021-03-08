@@ -214,3 +214,18 @@ class PyMysqlPoolBase(object):
                 logger.info("已有数据 {} ".format(to_insert))
             self.end()
             return count
+
+    def table_update(self, table_name, updates, field_where, value_where):
+        upsets = []
+        values = []
+        for k, v in updates.items():
+            s = '%s=%%s' % k
+            upsets.append(s)
+            values.append(v)
+        upsets = ','.join(upsets)
+        sql = 'UPDATE %s SET %s WHERE %s="%s"' % (
+            table_name,
+            upsets,
+            field_where, value_where,
+        )
+        return self._exec_sql(sql, *(values))

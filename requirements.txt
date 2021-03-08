@@ -4,3 +4,4 @@ pymysql==0.10.1
 schedule==0.6.0
 APScheduler==3.6.3
 mysqlclient==2.0.3
+DBUtils==1.3
