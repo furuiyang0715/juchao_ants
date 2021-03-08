@@ -1,16 +1,20 @@
 import logging
-import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
+import utils
 from annversion1.base1 import SourceAnnouncementBaseV1
 from annversion1.his1 import JuchaoHistorySpiderV1
-from annversion2 import utils
-from annversion2.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
-from annversion2.juchao_historyants_spider import JuchaoHistorySpider
+
 from annversion2.juchao_livenews_spider import JuchaoLiveNewsSpider
+from annversion2.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
+
+from annversion2.juchao_historyants_spider import JuchaoHistorySpider
 from annversion2.source_announcement_base import SourceAnnouncementBase
+
+from spy_announcement.ann_secu_ref_generator import AnnSecuRef
+from spy_announcement.juchao_historyant_spider import JuchaoHistorySpy
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -23,14 +27,21 @@ ap_scheduler = BackgroundScheduler(executors=executors)
 
 
 task_info = [
-    {'task_id': 'his', 'task_name': 'his_spider', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 2},
+    # v1 v2 公用
     {'task_id': 'live', 'task_name': 'live_spider', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 10},
     {'task_id': 'fin', 'task_name': 'finance_update', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 10},
-    {'task_id': 'base', 'task_name': 'merge_base', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 2},
 
     # v1
-    # {'task_id': 'his1', 'task_name': 'his_spider1', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 3},    # TODO 从某个时间点开始的间隔 2min 一次 避免执行时线程比较集中
-    # {'task_id': 'base1', 'task_name': 'merge_base1', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 3},
+    {'task_id': 'his1', 'task_name': 'his_spider1', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 3},
+    {'task_id': 'base1', 'task_name': 'merge_base1', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 3},
+
+    # v2
+    {'task_id': 'his2', 'task_name': 'his_spider', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 2},
+    {'task_id': 'base2', 'task_name': 'merge_base', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 2},
+
+    # 最新
+    {'task_id': 'his', 'task_name': 'his_spider', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 2},
+    {'task_id': 'ref', 'task_name': 'ann_secu_ref', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 1},
 
     # 概况播报
     {'task_id': 'ding', 'task_name': 'ding_msg', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 90},
@@ -38,22 +49,33 @@ task_info = [
 
 
 def handle(event_name: str):
-    if event_name == 'his':
+
+    # v1 版本
+    if event_name == 'his1':
+        JuchaoHistorySpiderV1().start()
+    elif event_name == 'base1':
+        SourceAnnouncementBaseV1().daily_update()
+
+    # v2 版本
+    elif event_name == 'his2':
         JuchaoHistorySpider().start()
+    elif event_name == 'base2':
+        SourceAnnouncementBase().daily_update()
+
+    # v1 v2 公用
     elif event_name == 'live':
         JuchaoLiveNewsSpider().start()
     elif event_name == 'fin':
         JuchaoFinanceSpider().start()
-    elif event_name == 'base':
-        SourceAnnouncementBase().daily_update()
+
+    elif event_name == 'his':
+        JuchaoHistorySpy().start()
+    elif event_name == 'ref':
+        AnnSecuRef().daily_sync()
+
+    # 播报模块
     elif event_name == 'ding':
         utils.send_crawl_overview()
-
-    # v1 版本
-    elif event_name == 'his1':
-        JuchaoHistorySpiderV1().start()
-    elif event_name == 'base1':
-        SourceAnnouncementBaseV1().daily_update()
 
 
 for data in task_info:
@@ -75,14 +97,19 @@ for data in task_info:
 
 
 if __name__ == '__main__':
-    # handle('his')
-    # handle('live')
-    # handle('fin')
-    # handle('base')
-    # handle('ding')
-
     # handle('his1')
     # handle('base1')
+
+    # handle('his2')
+    # handle('base2')
+
+    # handle('live')
+    # handle('fin')
+
+    # handle('his')
+    # handle('base')
+
+    # handle('ding')
 
 
     pass

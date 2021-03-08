@@ -18,10 +18,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 
-class JuchaoHistorySpider(JuchaoHisSpiderBase):
+class JuchaoHistorySpy(JuchaoHisSpiderBase):
     """巨潮历史公告爬虫 """
     def __init__(self):
-        super(JuchaoHistorySpider, self).__init__()
+        super(JuchaoHistorySpy, self).__init__()
         self.partten = re.compile('\<.*\>')
         self.history_table_name = 'spy_announcement_data'  # 巨潮历史公告表
         self.fields = ['cninfo_announcement_id', 'secu_codes', 'category_codes', 'ann_classify', 'title', 'pdf_link', 'pub_datetime']
