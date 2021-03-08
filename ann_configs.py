@@ -5,7 +5,7 @@ env = os.environ
 
 cf = configparser.ConfigParser()
 thisdir = os.path.dirname(__file__)
-cf.read(os.path.join(thisdir, 'spiders.ini'))
+cf.read(os.path.join(thisdir, 'ann.ini'))
 
 
 # deploy
@@ -68,4 +68,3 @@ else:
     SPIDER_MYSQL_USER = env.get("SPIDER_MYSQL_USER", cf.get('w_spider', 'W_SPIDER_MYSQL_USER'))
     SPIDER_MYSQL_PASSWORD = env.get("SPIDER_MYSQL_PASSWORD", cf.get('w_spider', 'W_SPIDER_MYSQL_PASSWORD'))
     SPIDER_MYSQL_DB = env.get("SPIDER_MYSQL_DB", cf.get('w_spider', 'W_SPIDER_MYSQL_DB'))
-

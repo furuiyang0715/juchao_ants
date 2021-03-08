@@ -3,9 +3,6 @@ import logging
 import os
 import pprint
 import sys
-import time
-import traceback
-import schedule
 
 cur_path = os.path.split(os.path.realpath(__file__))[0]
 file_path = os.path.abspath(os.path.join(cur_path, ".."))
@@ -100,17 +97,3 @@ set A.MainID = B.id, A.CategoryCode = B.CategoryCode;'
         update_count = self._spider_conn.insert(sql)
         logger.info(update_count)
         return update_count
-
-
-if __name__ == '__main__':
-    def task():
-        try:
-            JuchaoFinanceSpider().start()
-        except:
-            traceback.print_exc()
-
-    task()
-    schedule.every(20).minutes.do(task)
-    while True:
-        schedule.run_pending()
-        time.sleep(10)

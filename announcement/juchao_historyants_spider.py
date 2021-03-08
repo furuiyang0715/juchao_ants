@@ -6,8 +6,6 @@ import re
 import sys
 import time
 import pprint
-import traceback
-import schedule
 from retrying import retry
 
 cur_path = os.path.split(os.path.realpath(__file__))[0]
@@ -114,18 +112,3 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
 
         self.query(start_date=start_dt, end_date=end_dt)
         self.query_unconditional(start_date=start_dt, end_date=end_dt)
-
-
-if __name__ == '__main__':
-    def task():
-        try:
-            JuchaoHistorySpider().start()
-        except:
-            traceback.print_exc()
-    task()
-
-    schedule.every(2).minutes.do(task)
-    while True:
-        schedule.run_pending()
-
-        time.sleep(20)

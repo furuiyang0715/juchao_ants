@@ -4,9 +4,7 @@ import logging
 import os
 import sys
 import time
-import traceback
 import requests
-import schedule
 from retrying import retry
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -16,9 +14,8 @@ cur_path = os.path.split(os.path.realpath(__file__))[0]
 file_path = os.path.abspath(os.path.join(cur_path, ".."))
 sys.path.insert(0, file_path)
 
-from announcement.spider_configs import (SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER,
-                                         SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, JUY_HOST, JUY_PORT,
-                                         JUY_USER, JUY_PASSWD, JUY_DB)
+from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
+    JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
 from announcement.sql_base import Connection
 
 
@@ -137,18 +134,3 @@ class JuchaoLiveNewsSpider(object):
             self._spider_conn.batch_insert(items, self.table_name, self.fields)
             this_day -= datetime.timedelta(days=1)
             time.sleep(3)
-
-
-if __name__ == '__main__':
-    def task():
-        try:
-            JuchaoLiveNewsSpider().start()
-        except:
-            traceback.print_exc()
-
-    task()
-
-    schedule.every(10).minutes.do(task)
-    while True:
-        schedule.run_pending()
-        time.sleep(20)

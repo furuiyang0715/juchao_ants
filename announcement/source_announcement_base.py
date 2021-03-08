@@ -2,10 +2,6 @@ import datetime
 import logging
 import os
 import sys
-import time
-import traceback
-
-import schedule
 
 cur_path = os.path.split(os.path.realpath(__file__))[0]
 file_path = os.path.abspath(os.path.join(cur_path, ".."))
@@ -13,10 +9,10 @@ sys.path.insert(0, file_path)
 
 from announcement import utils
 from announcement.sql_base import Connection
-from announcement.spider_configs import (
-    R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, R_SPIDER_MYSQL_DB,
-    SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB,
-    JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB)
+
+from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, \
+    R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
+    JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -143,20 +139,3 @@ and A.code = B.SecuCode and A.link = B.AntDoc and A.type = '公告';  '''.format
                 'Title2': data.get("title"),
             }
             self._spider_conn.table_update(self.merge_table_name, item, 'PDFLink', data.get("link"))
-
-
-if __name__ == '__main__':
-    SourceAnnouncementBase().daily_update(deadline=datetime.datetime(2021, 1, 8))
-
-    def task():
-        try:
-            SourceAnnouncementBase().daily_update()
-        except:
-            traceback.print_exc()
-
-    task()
-    schedule.every(2).minutes.do(task)
-
-    while True:
-        schedule.run_pending()
-        time.sleep(20)
