@@ -6,14 +6,12 @@ import pprint
 import re
 import sys
 import time
-import traceback
-import schedule
 from retrying import retry
 
 cur_path = os.path.split(os.path.realpath(__file__))[0]
 file_path = os.path.abspath(os.path.join(cur_path, ".."))
 sys.path.insert(0, file_path)
-from announcement.juchao_historyant_base import JuchaoHisSpiderBase
+from annversion2.juchao_historyant_base import JuchaoHisSpiderBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -63,7 +61,7 @@ class JuchaoHistorySpiderV1(JuchaoHisSpiderBase):
                 if len(ants) == 0:
                     break
                 items = self.process_items(ants)
-                self._spider_conn.batch_insert(items, self.history_table_name,
+                self._spider_conn._batch_save(items, self.history_table_name,
                     ['SecuCode', 'SecuAbbr', 'AntTime', 'AntTitle', 'AntDoc'])
                 cat_num += len(items)
             count_map[cat_name] = cat_num
@@ -87,7 +85,7 @@ class JuchaoHistorySpiderV1(JuchaoHisSpiderBase):
             if len(ants) == 0:
                 break
             items = self.process_items(ants)
-            self._spider_conn.batch_insert(items, self.history_table_name,
+            self._spider_conn._batch_save(items, self.history_table_name,
                                            ['SecuCode', 'AntTime', 'AntTitle', 'AntDoc'])
         logger.info(f"无分类查询: 本次股票{stock_str}, 本次时间{start_date}-->>{end_date}, 数量: {counts}")
 
@@ -99,17 +97,3 @@ class JuchaoHistorySpiderV1(JuchaoHisSpiderBase):
             end_dt = _today
         self.query(start_date=start_dt, end_date=end_dt)
         self.query_unconditional(start_date=start_dt, end_date=end_dt)
-
-
-if __name__ == '__main__':
-    def task():
-        try:
-            JuchaoHistorySpiderV1().start()
-        except:
-            traceback.print_exc()
-
-    task()
-    schedule.every(2).minutes.do(task)
-    while True:
-        schedule.run_pending()
-        time.sleep(20)

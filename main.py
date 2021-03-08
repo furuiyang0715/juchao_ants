@@ -4,6 +4,8 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
+from annversion1.base1 import SourceAnnouncementBaseV1
+from annversion1.his1 import JuchaoHistorySpiderV1
 from annversion2 import utils
 from annversion2.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
 from annversion2.juchao_historyants_spider import JuchaoHistorySpider
@@ -48,14 +50,10 @@ def handle(event_name: str):
         utils.send_crawl_overview()
 
     # v1 版本
-    # elif event_name == 'his1':
-    #     JuchaoHistorySpiderV1().start()
-    # elif event_name == 'base1':
-    #     SourceAnnouncementBaseV1().daily_update()
-
-    # 敏仪的 bas..
-    # elif event_name == 'bas_secumain':
-    #     ann_derivation_task()
+    elif event_name == 'his1':
+        JuchaoHistorySpiderV1().start()
+    elif event_name == 'base1':
+        SourceAnnouncementBaseV1().daily_update()
 
 
 for data in task_info:
@@ -81,7 +79,10 @@ if __name__ == '__main__':
     # handle('live')
     # handle('fin')
     # handle('base')
-    handle('ding')
+    # handle('ding')
+
+    # handle('his1')
+    handle('base1')
 
 
     pass
