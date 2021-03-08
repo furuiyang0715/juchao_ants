@@ -1,5 +1,6 @@
 import argparse
 import datetime
+import logging
 import sys
 
 from annversion2.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
@@ -16,6 +17,9 @@ from annversion2.source_announcement_base import SourceAnnouncementBase
 # 新版
 from spy_announcement.ann_secu_ref_generator import AnnSecuRef
 from spy_announcement.juchao_historyant_spider import JuchaoHistorySpy
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 parser = argparse.ArgumentParser(description='脚本启动爬虫')

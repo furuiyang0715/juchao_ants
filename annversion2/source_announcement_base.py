@@ -7,7 +7,6 @@ from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
 from sql_pool import PyMysqlPoolBase
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 

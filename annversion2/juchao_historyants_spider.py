@@ -7,7 +7,7 @@ import pprint
 from retrying import retry
 
 from annversion2.juchao_historyant_base import JuchaoHisSpiderBase
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
 logger = logging.getLogger(__name__)
 
 

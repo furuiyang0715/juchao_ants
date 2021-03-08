@@ -1,4 +1,5 @@
 import logging
+import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -89,27 +90,8 @@ for data in task_info:
     )
 
 
-# ap_scheduler.start()
-#
-#
-# while True:    # TODO 改为从命令行接收参数
-#     time.sleep(10)
+ap_scheduler.start()
 
 
-if __name__ == '__main__':
-    # handle('his1')
-    # handle('base1')
-
-    # handle('his2')
-    # handle('base2')
-
-    # handle('live')
-    # handle('fin')
-
-    # handle('his')
-    # handle('base')
-
-    # handle('ding')
-
-
-    pass
+while True:
+    time.sleep(10)

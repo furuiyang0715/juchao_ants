@@ -5,12 +5,11 @@ import time
 import requests
 from retrying import retry
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
 from sql_pool import PyMysqlPoolBase
+
+logger = logging.getLogger(__name__)
 
 
 class JuchaoLiveNewsSpider(object):
