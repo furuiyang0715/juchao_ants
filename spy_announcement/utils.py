@@ -8,22 +8,20 @@ import urllib.parse
 
 import requests
 
-from spy_announcement import sql_base
-from spy_announcement.spider_configs import (SECRET, TOKEN, USER_PHONE, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT,
-    SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB)
-from spy_announcement.sql_base import Connection
-
+from ann_configs import SECRET, TOKEN, USER_PHONE, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
+    SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB
+from sql_pool import PyMysqlPoolBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
-def get_inc_num(conn: sql_base.Connection, table_name: str, field: str):
+def get_inc_num(conn: PyMysqlPoolBase, table_name: str, field: str):
     query_sql = '''
     select count(id) as inc_count from {} where {} >= date_sub(CURDATE(), interval 1 day);
     '''
     query_sql = query_sql.format(table_name, field)
-    inc_count = conn.get(query_sql).get("inc_count")
+    inc_count = conn.select_one(query_sql).get("inc_count")
     return inc_count
 
 
@@ -66,12 +64,12 @@ def ding_msg(msg: str):
 
 
 def send_crawl_overview():
-    conn = Connection(
+    conn = PyMysqlPoolBase(
         host=SPIDER_MYSQL_HOST,
         port=SPIDER_MYSQL_PORT,
         user=SPIDER_MYSQL_USER,
         password=SPIDER_MYSQL_PASSWORD,
-        database=SPIDER_MYSQL_DB
+        db=SPIDER_MYSQL_DB
     )
     spiders_info = {
         # 'juchao_ant2': 'AntTime',
@@ -97,11 +95,3 @@ def send_crawl_overview():
     print(msg)
     ding_msg(msg)
     return msg
-
-
-if __name__ == '__main__':
-    # ding_msg('just test')
-
-    send_crawl_overview()
-
-    pass

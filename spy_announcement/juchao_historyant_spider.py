@@ -6,8 +6,6 @@ import re
 import sys
 import time
 import pprint
-import traceback
-import schedule
 from retrying import retry
 
 
@@ -81,7 +79,7 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
             # items = self.process_items(ants, {'cat_code': 'category_others', 'cat_name': '其他'})
             items = self.process_items(ants, {'cat_code': '27', 'cat_name': '其他'})
             counts += len(items)
-            self._spider_conn.batch_insert(items, self.history_table_name,
+            self._spider_conn._batch_save(items, self.history_table_name,
            ['secu_codes', 'ann_classify', 'title', 'pdf_link', 'pub_datetime'])
 
         logger.info(f"无分类查询: 本次股票{stock_str}, 本次时间{start_date}-->>{end_date}, 数量: {counts}")
@@ -150,11 +148,11 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
             iitem.update({'category_codes': cate_info})
             iitems.append(iitem)
             if len(iitems) >= 100:
-                self._spider_conn.batch_insert(iitems, self.history_table_name,
+                self._spider_conn._batch_save(iitems, self.history_table_name,
                 ['secu_codes', 'category_codes', 'ann_classify', 'title', 'pdf_link', 'pub_datetime'])
                 iitems = []
 
-        self._spider_conn.batch_insert(iitems, self.history_table_name,
+        self._spider_conn._batch_save(iitems, self.history_table_name,
         ['secu_codes', 'category_codes', 'ann_classify', 'title', 'pdf_link', 'pub_datetime'])
 
     def start(self, start_dt: datetime.datetime = None, end_dt: datetime.datetime = None):
@@ -169,41 +167,3 @@ class JuchaoHistorySpider(JuchaoHisSpiderBase):
 
         self.query_unconditional(start_date=start_dt, end_date=end_dt)
 
-
-if __name__ == '__main__':
-    # def task():
-    #     try:
-    #         JuchaoHistorySpider().start()
-    #     except:
-    #         traceback.print_exc()
-    # task()
-    #
-    # schedule.every(2).minutes.do(task)
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(20)
-
-    def run_fortest():
-        JuchaoHistorySpider().start(datetime.datetime(2021, 2, 19), datetime.datetime(2021, 2, 19))
-
-    run_fortest()
-    # # test sql example: select distinct category_codes from spy_announcement_data where date(pub_datetime) = '2021-02-19' ;
-
-
-'''
-docker build -f Dockerfile -t registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 .
-docker push registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
-
-sudo docker pull registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
-
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=0 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python juchao_historyant_spider.py
-
-
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=1 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python juchao_historyant_spider.py
-'''

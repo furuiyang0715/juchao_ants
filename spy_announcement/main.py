@@ -1,7 +1,6 @@
 import logging
 import os
 import sys
-import time
 
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
@@ -52,36 +51,14 @@ for data in task_info:
     )
 
 
-ap_scheduler.start()
-handle('ding')
+# ap_scheduler.start()
 
 
-"""
-docker build -f Dockerfile -t registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 .
-docker push registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
+if __name__ == '__main__':
+    # handle('ding')
 
-sudo docker pull registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
+    # handle('his')
 
-# 远程首次进行的关联表导入 
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name ref --env LOCAL=0 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python ann_secu_ref_generator.py
+    handle('ref')
 
-
-# 远程日常更新
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann_ref --env LOCAL=0 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python main.py
-
-# 本地日常更新 
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann_ref --env LOCAL=1 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python main.py
-"""
-
-
-while True:    # 改为从命令行接收参数
-    time.sleep(10)
+    pass

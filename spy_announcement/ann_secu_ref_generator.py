@@ -1,45 +1,39 @@
 # 生成公告-证券关联表
 import datetime
 import logging
-import sys
-import time
-
-sys.path.append('./../')
-
-from spy_announcement.spider_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, \
-    R_SPIDER_MYSQL_PASSWORD, R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
-    SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
-from spy_announcement.sql_base import Connection
+from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, \
+    R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
+    JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
+from sql_pool import PyMysqlPoolBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 class AnnSecuRef(object):
-
     def __init__(self):
-        self.read_spider_conn = Connection(
+        self.read_spider_conn = PyMysqlPoolBase(
             host=R_SPIDER_MYSQL_HOST,
             port=R_SPIDER_MYSQL_PORT,
             user=R_SPIDER_MYSQL_USER,
             password=R_SPIDER_MYSQL_PASSWORD,
-            database=R_SPIDER_MYSQL_DB,
+            db=R_SPIDER_MYSQL_DB,
         )
 
-        self.spider_conn = Connection(
+        self.spider_conn = PyMysqlPoolBase(
             host=SPIDER_MYSQL_HOST,
             port=SPIDER_MYSQL_PORT,
             user=SPIDER_MYSQL_USER,
             password=SPIDER_MYSQL_PASSWORD,
-            database=SPIDER_MYSQL_DB,
+            db=SPIDER_MYSQL_DB,
         )
 
-        self.juyuan_conn = Connection(
+        self.juyuan_conn = PyMysqlPoolBase(
             host=JUY_HOST,
             port=JUY_PORT,
             user=JUY_USER,
             password=JUY_PASSWD,
-            database=JUY_DB,
+            db=JUY_DB,
         )
 
         self.batch_count = 10000
@@ -48,7 +42,7 @@ class AnnSecuRef(object):
     def fetch_bas_secumain(self) -> dict:
         # 将 bas_secumain 的全部数据加载到内存中
         bas_sql = '''select id, secu_code from bas_secumain where secu_category in (1, 41); '''
-        bas_datas = self.read_spider_conn.query(bas_sql)
+        bas_datas = self.read_spider_conn.select_all(bas_sql)
         bas_map = {}
         for data in bas_datas:
             bas_map[data['secu_code']] = data['id']
@@ -65,7 +59,7 @@ class AnnSecuRef(object):
                    AND A.SecuCode <> B.SecuCode
                    ORDER BY A.StopDate; 
                '''
-        rename_datas = self.juyuan_conn.query(sql_fetch_raname_secucodes)
+        rename_datas = self.juyuan_conn.select_all(sql_fetch_raname_secucodes)
         for rename_data in rename_datas:
             new_code = rename_data['new_code']
             secu_id = bas_map[new_code]
@@ -76,7 +70,7 @@ class AnnSecuRef(object):
     def get_max_spyid(self):
         # 获取爬虫表中目前的最大 id
         sql_get_maxid = '''select max(id) from spy_announcement_data; '''
-        max_id = self.read_spider_conn.get(sql_get_maxid).get("max(id)")
+        max_id = self.read_spider_conn.select_one(sql_get_maxid).get("max(id)")
         return max_id
 
     def process_spy_datas(self, origin_ann_datas: list, bas_map: dict):
@@ -97,10 +91,10 @@ class AnnSecuRef(object):
             # print(item)
             items.append(item)
             if len(items) > 10000:
-                count = self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
+                count = self.spider_conn._batch_save(items, 'an_announcement_secu_ref', ['secu_id', ])
                 logger.debug(count)
                 items = []
-        self.spider_conn.batch_insert(items, 'an_announcement_secu_ref', ['secu_id', ])
+        self.spider_conn._batch_save(items, 'an_announcement_secu_ref', ['secu_id', ])
         logger.warning(f'未匹配证券代码: {self.codes_notfound}')
 
     def diff_ids(self):
@@ -109,12 +103,12 @@ class AnnSecuRef(object):
         '''
 
         sql = '''select id from spy_announcement_data ; '''
-        ret = self.read_spider_conn.query(sql)
+        ret = self.read_spider_conn.select_all(sql)
         spy_ids = set([r.get("id") for r in ret])
         print(len(spy_ids))
 
         sql = '''select ann_id from an_announcement_secu_ref; '''
-        ret = self.spider_conn.query(sql)
+        ret = self.spider_conn.select_all(sql)
         ref_ids = set([r.get("ann_id") for r in ret])
         print(len(ref_ids))
 
@@ -125,7 +119,7 @@ class AnnSecuRef(object):
         bas_map = self.update_rename_codes(bas_map)
 
         sql = f'''select * from spy_announcement_data where id in {diff_ids}'''
-        spy_datas = self.read_spider_conn.query(sql)
+        spy_datas = self.read_spider_conn.select_all(sql)
         logger.info(len(spy_datas))
         self.process_spy_datas(spy_datas, bas_map)
 
@@ -139,7 +133,7 @@ class AnnSecuRef(object):
             _start = i * self.batch_count
             _end = i * self.batch_count + self.batch_count
             sql = f'''select id, secu_codes from spy_announcement_data where id >= {_start} and id < {_end}; '''
-            origin_ann_datas = self.read_spider_conn.query(sql)
+            origin_ann_datas = self.read_spider_conn.select_all(sql)
             self.process_spy_datas(origin_ann_datas, bas_map)
 
     def daily_sync(self, start_dt: datetime.datetime = None):
@@ -150,38 +144,5 @@ class AnnSecuRef(object):
             # 每次启动定位开始时间为当日开始时间
             start_dt = datetime.datetime.combine(datetime.datetime.today(), datetime.time.min)
         sql = f'''select id, secu_codes from spy_announcement_data where update_time >= '{start_dt}'; '''
-        origin_ann_datas = self.read_spider_conn.query(sql)
+        origin_ann_datas = self.read_spider_conn.select_all(sql)
         self.process_spy_datas(origin_ann_datas, bas_map)
-
-
-if __name__ == '__main__':
-    ann_secu_ref = AnnSecuRef()
-    ann_secu_ref.init_load()
-    logger.warning(f'未匹配证券代码: {ann_secu_ref.codes_notfound}')
-
-    AnnSecuRef().diff_ids()
-
-    while True:
-        AnnSecuRef().daily_sync()
-        time.sleep(60)
-
-
-
-'''
-select distinct secu_id  from  an_announcement_secu_ref group by ann_id having count(*) > 1 ; 
-select secu_codes from spy_announcement_data where id in (189521, 190821, 189579); 
-select id from bas_secumain where secu_code in (000756, 002064); 
-
-# 经由敏仪的 bas_secumain 筛选 A 股的规则: select * from bas_secumain where secu_category = 1 ; 
-
-
-# 核对数量上的一致性
-#  {'136317', '122336', '110033', '136303', '122134', '200992', '122008', '122157', '143155', '900948', '900929', '136666', '122132', '122488', '122253', 'B06475', '200706', '122404', '122102', '122313', '122370', '200553', '122104', '200530', '136566', '122285', '122495', '122257', '900953', '122406', '122079', '200771', '122388', '122377', '122362', '122427', '110030', '122112', '122235', '122085', '136250', '200512', '122269', '200986', '122421', '122028', '110032', '122378', '122088', '136427', '122354', '122043', '136092', '200168', '136206', '122385', '136054', '113009', '122190', '122267', '200468', '136294', '122192', '122254', '122188', '200152', '122304', '200054', '122096', '122083', '900939', '136018'}
-select count(*) from spy_announcement_data ;
-
-select count(*) from spy_announcement_data where secu_codes in ('200054', '200530', '136427', '200771', '110032', '122102', '122385', '122495', '122404', '200168', '122134', '122388', '122378', '122304', '122104', '200512', '122157', '122269', '122190', '122096', '200468', '122083', '136054', 'B06475', '122427', '122421', '113009', '110033', '200986', '136092', '122257', '136566', '122254', '122253', '122028', '689009', '136666', '136018', '136294', '122362', '122370', '122336', '122188', '122285', '122377', '122085', '900929', '122112', '143155', '136303', '122354', '122267', '200152', '122313', '122406', '122132', '136250', '122008', '900953', '200553', '200706', '900948', '122088', '122488', '122192', '122079', '122043', '900939', '136317', '110030', '122235', '200992', '136206') ;
-
-select count(*) form an_announcement_secu_ref ; 
-
-
-'''

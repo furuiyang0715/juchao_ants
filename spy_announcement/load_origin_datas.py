@@ -1,32 +1,27 @@
 import logging
-import pprint
-import sys
-
-sys.path.append("./../")
-from spy_announcement.spider_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, \
-    SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, \
-    R_SPIDER_MYSQL_PASSWORD, R_SPIDER_MYSQL_DB, LOCAL
-from spy_announcement.sql_base import Connection
+from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
+    LOCAL, R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, R_SPIDER_MYSQL_DB
+from sql_pool import PyMysqlPoolBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 class LoadOriginAnnData:
-    spider_conn = Connection(
+    spider_conn = PyMysqlPoolBase(
         host=SPIDER_MYSQL_HOST,
         port=SPIDER_MYSQL_PORT,
         user=SPIDER_MYSQL_USER,
         password=SPIDER_MYSQL_PASSWORD,
-        database=SPIDER_MYSQL_DB,
+        db=SPIDER_MYSQL_DB,
     )
     if LOCAL:
-        product_read_spider_conn = Connection(
+        product_read_spider_conn = PyMysqlPoolBase(
             host=R_SPIDER_MYSQL_HOST,
             port=R_SPIDER_MYSQL_PORT,
             user=R_SPIDER_MYSQL_USER,
             password=R_SPIDER_MYSQL_PASSWORD,
-            database=R_SPIDER_MYSQL_DB,
+            db=R_SPIDER_MYSQL_DB,
         )
     else:
         product_read_spider_conn = spider_conn
@@ -96,11 +91,11 @@ class LoadOriginAnnData:
           UNIQUE KEY `annid_secuid` (`ann_id`, `secu_id`)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_bin ROW_FORMAT=DYNAMIC COMMENT='证券公告关联表' ;
         '''
-        self.spider_conn.execute(sql_create_table)
-        self.spider_conn.execute(sql_create_table2)
+        self.spider_conn._exec_sql(sql_create_table)
+        self.spider_conn._exec_sql(sql_create_table2)
 
         sql_fetch_maxid = '''select max(id) from juchao_ant2 where AntTime <= '2021-02-18' ; '''
-        max_id = self.product_read_spider_conn.get(sql_fetch_maxid).get("max(id)")
+        max_id = self.product_read_spider_conn.select_one(sql_fetch_maxid).get("max(id)")
         print(max_id)
 
         sql_load = '''
@@ -119,7 +114,7 @@ class LoadOriginAnnData:
         for i in range(int(max_id / self.batch_num) + 1):
             sl = sql_load.format(i*self.batch_num, i*self.batch_num+self.batch_num)
             print(sl)
-            juchao_ants_datas = self.product_read_spider_conn.query(sl)
+            juchao_ants_datas = self.product_read_spider_conn.select_all(sl)
             print(len(juchao_ants_datas))
             for data in juchao_ants_datas:
                 if data.get('CategoryCode') == '':
@@ -135,30 +130,7 @@ class LoadOriginAnnData:
                 data['ann_classify'] = 1
                 items.append(data)
                 if len(items) > 100:
-                    self.spider_conn.batch_insert(items, 'spy_announcement_data', self.fields)
+                    self.spider_conn._batch_save(items, 'spy_announcement_data', self.fields)
                     items = []
 
-        self.spider_conn.batch_insert(items, 'spy_announcement_data', self.fields)
-
-
-if __name__ == '__main__':
-    LoadOriginAnnData().start()
-
-'''
-docker build -f Dockerfile -t registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 .
-docker push registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
-
-sudo docker pull registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1
-
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=0 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python load_origin_datas.py
-
-
-sudo docker run --log-opt max-size=10m --log-opt max-file=3 \
--itd --name spy_ann --env LOCAL=1 \
-registry.cn-shenzhen.aliyuncs.com/jzdev/jzdata/spy_ann:v1 \
-python load_origin_datas.py
-
-'''
+        self.spider_conn._batch_save(items, 'spy_announcement_data', self.fields)

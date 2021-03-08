@@ -82,7 +82,7 @@ if __name__ == '__main__':
     # handle('ding')
 
     # handle('his1')
-    handle('base1')
+    # handle('base1')
 
 
     pass
