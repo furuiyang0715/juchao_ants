@@ -10,7 +10,7 @@ file_path = os.path.abspath(os.path.join(cur_path, ".."))
 sys.path.insert(0, file_path)
 
 from spy_announcement.ann_secu_ref_generator import AnnSecuRef
-from spy_announcement import utils
+import utils
 from spy_announcement.juchao_historyant_spider import JuchaoHistorySpider
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')

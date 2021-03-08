@@ -7,7 +7,7 @@ cur_path = os.path.split(os.path.realpath(__file__))[0]
 file_path = os.path.abspath(os.path.join(cur_path, ".."))
 sys.path.insert(0, file_path)
 
-from annversion2 import utils
+import utils
 from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, \
     R_SPIDER_MYSQL_DB, SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB

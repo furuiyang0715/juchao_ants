@@ -211,6 +211,9 @@ def send_crawl_overview():
         # TODO v1 版本的讯息
         'juchao_ant': 'AntTime',
         'announcement_base': 'PubDatetime1',
+
+        'spy_announcement_data': 'pub_datetime',
+        'an_announcement_secu_ref': 'update_time',
     }
 
     msg = ''
