@@ -226,6 +226,9 @@ class PyMysqlPoolBase(object):
         sql = 'UPDATE %s SET %s WHERE %s="%s"' % (
             table_name,
             upsets,
-            field_where, value_where,
+            field_where,
+            value_where,
         )
-        return self._exec_sql(sql, *(values))
+        # logger.info(sql)
+        # logger.info(values)    # 要更新的值: tuple/list
+        return self._exec_sql(sql, values)

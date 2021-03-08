@@ -82,6 +82,8 @@ for data in task_info:
 #     time.sleep(10)
 
 
-
 if __name__ == '__main__':
-    handle('his')
+    # handle('his')
+    # handle('live')
+    # handle('fin')
+    handle('base')
