@@ -1,11 +1,5 @@
 import datetime
 import logging
-import os
-import sys
-
-cur_path = os.path.split(os.path.realpath(__file__))[0]
-file_path = os.path.abspath(os.path.join(cur_path, ".."))
-sys.path.insert(0, file_path)
 
 import utils
 from ann_configs import R_SPIDER_MYSQL_HOST, R_SPIDER_MYSQL_PORT, R_SPIDER_MYSQL_USER, R_SPIDER_MYSQL_PASSWORD, \

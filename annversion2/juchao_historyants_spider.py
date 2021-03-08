@@ -1,18 +1,12 @@
 import datetime
 import logging
-import os
 import random
 import re
-import sys
 import time
 import pprint
 from retrying import retry
 
-cur_path = os.path.split(os.path.realpath(__file__))[0]
-file_path = os.path.abspath(os.path.join(cur_path, ".."))
-sys.path.insert(0, file_path)
 from annversion2.juchao_historyant_base import JuchaoHisSpiderBase
-
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 

@@ -1,18 +1,12 @@
 import datetime
 import json
 import logging
-import os
-import sys
 import time
 import requests
 from retrying import retry
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
-
-cur_path = os.path.split(os.path.realpath(__file__))[0]
-file_path = os.path.abspath(os.path.join(cur_path, ".."))
-sys.path.insert(0, file_path)
 
 from ann_configs import SPIDER_MYSQL_HOST, SPIDER_MYSQL_PORT, SPIDER_MYSQL_USER, SPIDER_MYSQL_PASSWORD, SPIDER_MYSQL_DB, \
     JUY_HOST, JUY_PORT, JUY_USER, JUY_PASSWD, JUY_DB
