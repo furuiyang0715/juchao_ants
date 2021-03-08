@@ -4,14 +4,11 @@ import time
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.executors.pool import ThreadPoolExecutor
 
-# from ann_derivation.main import ann_derivation_task
-from announcement import utils
-from announcement.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
-from announcement.juchao_historyants_spider import JuchaoHistorySpider
-from announcement.juchao_livenews_spider import JuchaoLiveNewsSpider
-from announcement.source_announcement_base import SourceAnnouncementBase
-# from annversion1.base1 import SourceAnnouncementBaseV1
-# from annversion1.his1 import JuchaoHistorySpiderV1
+from annversion2 import utils
+from annversion2.juchao_finance_hotfixes_spider import JuchaoFinanceSpider
+from annversion2.juchao_historyants_spider import JuchaoHistorySpider
+from annversion2.juchao_livenews_spider import JuchaoLiveNewsSpider
+from annversion2.source_announcement_base import SourceAnnouncementBase
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -35,9 +32,6 @@ task_info = [
 
     # 概况播报
     {'task_id': 'ding', 'task_name': 'ding_msg', "trigger": 'interval', 'time_unit': 'minutes', 'time_interval': 90},
-
-    # 敏仪的 bas_secumain 和 bas_stock_industry 的更新任务
-    # {'task_id': 'bas_secumain', 'task_name': 'bas_secumain_and_bas_industry', 'trigger': 'interval', 'time_unit': 'minutes', 'time_interval': 1},
 ]
 
 
@@ -83,7 +77,11 @@ for data in task_info:
 
 
 if __name__ == '__main__':
-    # handle('his')
+    handle('his')
     # handle('live')
     # handle('fin')
-    handle('base')
+    # handle('base')
+    # handle('ding')
+
+
+    pass
