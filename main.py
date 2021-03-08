@@ -77,11 +77,11 @@ for data in task_info:
 
 
 if __name__ == '__main__':
-    handle('his')
+    # handle('his')
     # handle('live')
     # handle('fin')
     # handle('base')
-    # handle('ding')
+    handle('ding')
 
 
     pass
