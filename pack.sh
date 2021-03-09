@@ -9,14 +9,12 @@ fi
 
 rm -f out/juchao_ant.tar.gz
 
-# tar -zxf 压缩包名.tar.gz
-tar -zvcf  out/hkland_data_pro.tar.gz  \
-            --exclude=../juchao_ant/out \
-             --exclude=../*temp \
-            --exclude=../*.pyc \
-            --exclude=../*.git \
-            --exclude=../*.idea \
-            --exclude=../*__pycache__ \
-            ../juchao_ant
-
-rm -rf tmp_conf
+# tar zxvf hkland_data_pro.tar.gz
+cd .. && (tar zcvf juchao_ant/out/hkland_data_pro.tar.gz \
+          --exclude=juchao_ant/out \
+          --exclude=*temp \
+          --exclude=*.pyc \
+          --exclude=*.git \
+          --exclude=*.idea \
+          --exclude=*__pycache__ \
+          juchao_ant)
