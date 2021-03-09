@@ -50,28 +50,28 @@ task_info = [
 
 
 def handle(event_name: str):
-
     # v1 版本
-    if event_name == 'his1':
+    if event_name == 'his1':    # juchao_ant
         JuchaoHistorySpiderV1().start()
-    elif event_name == 'base1':
+    elif event_name == 'base1':    # announcement_base
         SourceAnnouncementBaseV1().daily_update()
 
     # v2 版本
-    elif event_name == 'his2':
+    elif event_name == 'his2':   # juchao_ant2
         JuchaoHistorySpider().start()
-    elif event_name == 'base2':
+    elif event_name == 'base2':    # announcement_base2
         SourceAnnouncementBase().daily_update()
 
     # v1 v2 公用
-    elif event_name == 'live':
+    elif event_name == 'live':    # juchao_kuaixun
         JuchaoLiveNewsSpider().start()
-    elif event_name == 'fin':
+    elif event_name == 'fin':    # juchao_ant_finance
         JuchaoFinanceSpider().start()
 
-    elif event_name == 'his':
+    # 新版
+    elif event_name == 'his':   # spy_announcement_data
         JuchaoHistorySpy().start()
-    elif event_name == 'ref':
+    elif event_name == 'ref':    # an_announcement_secu_ref
         AnnSecuRef().daily_sync()
 
     # 播报模块
