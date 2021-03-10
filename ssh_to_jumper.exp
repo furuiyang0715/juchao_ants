@@ -1,0 +1,40 @@
+#!/usr/bin/expect -f
+
+set timeout 30
+
+#获取第一个参数，作为用户名
+set user [lindex $argv 0]
+set host [lindex $argv 1]
+set cmd [lindex $argv 2]
+
+#启动新的进程，实现ssh操作
+spawn ssh  -p 42222 ${user}@jumpserver.jingzhuan.cn
+
+#for循环操作
+expect {
+    # 如果需要输入MFA，等待输入。
+    "*MFA*" {
+        set AUTH [gets stdin]
+        send "$AUTH\r\n"
+	exp_continue
+    }
+    # 选择服务器的交互过程，输入服务器名。
+    "*Opt>*" {
+        send "${host}\r\n"
+        exp_continue
+    }
+    # 如果需要选择用户，等待输入。
+    "*ID>*" {
+        set USERID [gets stdin]
+        send "$USERID\r"
+        exp_continue
+    }
+    # 判断是否成功登录上服务器
+    "*\$*" {
+    }
+}
+
+send "$cmd"
+
+# 进行交互操作
+interact
