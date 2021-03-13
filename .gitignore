@@ -3,3 +3,4 @@ __pycache__/
 *.json
 temp*
 /out
+*.ini
